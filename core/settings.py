@@ -25,15 +25,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', default='django-insecure-@#x5h3zj!g+8g1v@2^b6^9$8&f1r7g$@t3v!p4#=g0r5qzj4m3')
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', default='False')
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", default="localhost").split(",")
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", default="http://localhost:4200").split(",")
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS').split(',')
 
-
+COOKIE_SECURE = os.getenv('COOKIE_SECURE', 'True') == 'True'
 
 # Application definition
 
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
     'django_rq',
     'app_authentication',
     'app_video',
@@ -66,7 +67,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -87,40 +88,41 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", default="videoflix_db"),
-        "USER": os.getenv("DB_USER", default="videoflix_user"),
-        "PASSWORD": os.getenv("DB_PASSWORD", default="supersecretpassword"),
-        "HOST": os.getenv("DB_HOST", default="db"),
-        "PORT": os.getenv("DB_PORT", default=5432)
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT')
     }
 }
 
 CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": os.getenv("REDIS_LOCATION", default="redis://redis:6379/1"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': os.getenv('REDIS_LOCATION'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient'
         },
-        "KEY_PREFIX": "videoflix"
+        'KEY_PREFIX': 'videoflix'
     }
 }
 
 RQ_QUEUES = {
     'default': {
-        'HOST': os.getenv("REDIS_HOST", default="redis"),
-        'PORT': os.getenv("REDIS_PORT", default=6379),
-        'DB': os.getenv("REDIS_DB", default=0),
+        'HOST': os.getenv('REDIS_HOST',),
+        'PORT': os.getenv('REDIS_PORT'),
+        'DB': os.getenv('REDIS_DB'),
         'DEFAULT_TIMEOUT': 900,
         'REDIS_CLIENT_KWARGS': {},
     },
@@ -145,6 +147,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'app_authentication.CustomUser'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -161,11 +165,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "static"
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'static'
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
@@ -173,3 +177,13 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT'))
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False') == 'True'
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
