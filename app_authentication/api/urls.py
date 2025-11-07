@@ -1,20 +1,19 @@
 from django.urls import path
+
 from .views import (
     RegisterView,
     ActivateView,
-    LoginView,
     LogoutView,
-    TokenRefreshView,
     PasswordResetView,
-    PasswordConfirmView,
+    PasswordConfirmView, CookieTokenRefreshView, CookieTokenLoginView,
 )
 
 urlpatterns = [
-    path('api/register/', RegisterView.as_view(), name='register'),
-    path('api/activate/<str:uidb64>/<str:token>/', ActivateView.as_view(), name='activate'),
-    path('api/login/', LoginView.as_view(), name='login'),
-    path('api/logout/', LogoutView.as_view(), name='logout'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/password_reset/', PasswordResetView.as_view(), name='password_reset'),
-    path('api/password_confirm/<str:uidb64>/<str:token>/', PasswordConfirmView.as_view(), name='password_confirm'),
+    path('register/', RegisterView.as_view(), name='register'),
+    path('activate/<str:uidb64>/<str:token>/', ActivateView.as_view(), name='activate'),
+    path('login/', CookieTokenLoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+    path('token/refresh/', CookieTokenRefreshView.as_view(), name='token_refresh'),
+    path('password_reset/', PasswordResetView.as_view(), name='password_reset'),
+    path('password_confirm/<str:uidb64>/<str:token>/', PasswordConfirmView.as_view(), name='password_confirm'),
 ]
