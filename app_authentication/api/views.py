@@ -1,3 +1,4 @@
+import django_rq
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import render
@@ -15,6 +16,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from app_authentication.api.serializers import RegistrationSerializer
 from app_authentication.models import CustomUser
+from app_authentication.tasks import send_activation_email
 from core import settings
 from core.settings import COOKIE_SECURE
 
@@ -38,14 +40,8 @@ class RegisterView(APIView):
                 'activation_link': activation_link,
             })
 
-            send_mail(
-                subject='Activate your account',
-                message='Please activate your account by clicking the link.',
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
+            queue = django_rq.get_queue('default', autocommit=False)
+            queue.enqueue(send_activation_email, user, html_message, retry=3)
 
             return Response({
                 'user': {'id': user.id, 'email': user.email}
