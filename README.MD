@@ -56,10 +56,12 @@ DJANGO_SUPERUSER_USERNAME=admin
 DJANGO_SUPERUSER_PASSWORD=adminpassword
 DJANGO_SUPERUSER_EMAIL=admin@example.com
 
-SECRET_KEY="<secret_key>"
+SECRET_KEY='<secret_key>'
 DEBUG=True
 ALLOWED_HOSTS=<allowed_hosts>
 CSRF_TRUSTED_ORIGINS=<csrf_trusted_origins>
+CORS_ALLOWED_ORIGINS=<cors_allowed_origins>
+CORS_ALLOW_CREDENTIALS=True
 
 DB_NAME=your_database_name
 DB_USER=your_database_user
