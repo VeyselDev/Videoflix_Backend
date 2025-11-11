@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rq import Retry
 
 from app_authentication.api.serializers import RegistrationSerializer
 from app_authentication.models import CustomUser
@@ -35,17 +36,10 @@ class RegisterView(APIView):
             activation_path = reverse('activate', kwargs={'uidb64': uidb64, 'token': token})
             activation_link = request.build_absolute_uri(activation_path)
 
-            html_message = render_to_string('emails/activation_email.html', {
-                'user': user,
-                'activation_link': activation_link,
-            })
+            queue = django_rq.get_queue('default')
+            queue.enqueue(send_activation_email, user, activation_link, retry=Retry(max=3), job_timeout=120)
 
-            queue = django_rq.get_queue('default', autocommit=False)
-            queue.enqueue(send_activation_email, user, html_message, retry=3)
-
-            return Response({
-                'user': {'id': user.id, 'email': user.email}
-            }, status=status.HTTP_201_CREATED)
+            return Response({'user': {'id': user.id, 'email': user.email}}, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
