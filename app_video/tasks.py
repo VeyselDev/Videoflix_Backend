@@ -28,7 +28,7 @@ def convert_video_to_hls(video_path):
             "-f", "hls",
             "-hls_time", "10",
             "-hls_playlist_type", "vod",
-            "-hls_segment_filename", os.path.join(output_dir, "segment_%05d.ts"),
+            "-hls_segment_filename", os.path.join(output_dir, "%03d.ts"),
             playlist_path
         ]
 
