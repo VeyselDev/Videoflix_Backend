@@ -87,6 +87,8 @@ COOKIE_SECURE=False
 ```
 
 ## Build and Run the Application
+Make sure Docker Desktop is running and Docker Compose is available.
+
 Run the following command ```docker-compose up --build``` to build and start all services:
 
 The backend will be available at ```http://127.0.0.1:8000/```.
