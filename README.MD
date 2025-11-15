@@ -17,9 +17,6 @@ Videoflix is a video streaming platform that allows users to browse and watch vi
 ## Requirements
 
 - git
-- Python 3.11+  
-- pip (Python package manager)  
-- Virtualenv (recommended)
 - Docker Desktop with docker-compose
 
 ---
