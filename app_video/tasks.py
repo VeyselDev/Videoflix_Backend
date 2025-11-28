@@ -1,8 +1,27 @@
+import logging
 import subprocess
 import os
 
+from app_video.models import Video
 
-def convert_video_to_hls(video_path):
+logger = logging.getLogger(__name__)
+
+def convert_video_to_hls(video_id):
+    try:
+        video = Video.objects.get(id=video_id)
+        video_path = video.video_file.path
+
+        logger.info(f"Starting HLS conversion for video ID {video_id}")
+        logger.info(f"Video path: {video_path}")
+
+    except Video.DoesNotExist:
+        logger.error(f"Video with ID {video_id} not found")
+        return
+
+    if not os.path.exists(video_path):
+        logger.error(f"Video file does not exist: {video_path}")
+        return
+
     base, ext = os.path.splitext(video_path)
     resolutions = {
         "480p": "854x480",
@@ -32,4 +51,10 @@ def convert_video_to_hls(video_path):
             playlist_path
         ]
 
-        subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            logger.error(f"FFmpeg error for {label}: {result.stderr}")
+        else:
+            logger.info(f"Successfully created {label}")
+            logger.info(f"Files: {os.listdir(output_dir)}")
