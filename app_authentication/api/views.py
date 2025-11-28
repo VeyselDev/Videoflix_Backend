@@ -75,16 +75,16 @@ class CookieTokenLoginView(TokenObtainPairView):
             key='access_token',
             value=access,
             httponly=True,
-            secure=COOKIE_SECURE,
-            samesite='Lax'
+            secure=settings.COOKIE_SECURE,
+            samesite='Lax' if settings.COOKIE_SECURE else None,
         )
 
         response.set_cookie(
             key='refresh_token',
             value=refresh,
             httponly=True,
-            secure=COOKIE_SECURE,
-            samesite='Lax'
+            secure=settings.COOKIE_SECURE,
+            samesite='Lax' if settings.COOKIE_SECURE else None,
         )
 
         serializer = self.get_serializer(data=request.data)
@@ -154,8 +154,8 @@ class CookieTokenRefreshView(TokenRefreshView):
             key='access_token',
             value=access_token,
             httponly=True,
-            secure=COOKIE_SECURE,
-            samesite='Lax',
+            secure=settings.COOKIE_SECURE,
+            samesite='Lax' if settings.COOKIE_SECURE else None,
         )
 
         return response
