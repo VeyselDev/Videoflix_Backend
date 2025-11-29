@@ -1,7 +1,9 @@
 # Videoflix Backend
-
-This is the backend of the Videoflix project, built with **Django** and **Django REST Framework**. 
-Videoflix is a video streaming platform that allows users to browse and watch videos. The project focuses on implementing a secure authentication system and processing video conversions in the background. The backend handles user authentication, video streaming, and background tasks
+ 
+Videoflix is a video streaming platform that allows users to browse and watch videos. 
+The project focuses on implementing a secure authentication system and processing video conversions in the background. 
+The backend handles user authentication, video streaming and background tasks.
+It is built with **Django** and **Django REST Framework**.
 
 ---
 
@@ -32,7 +34,7 @@ cd Videoflix_Backend
 ```
 
 ### 2. Environment Variables
-Create a `.env` file in the root directory by copying the existing `.env.template` file.
+Run the following command to create a `.env` file by copying the existing `.env.template`:
 
 **macOS / Linux**
 ```bash
@@ -51,21 +53,26 @@ After creating the file, open the `.env` file and update the values with your ow
 ## Build and Run the Application
 Make sure **Docker Desktop** is running and **Docker Compose** is available.
 
-Run the following command ```docker-compose up --build``` to build and start all services.
+Run the following command to build and start all services:
+```bash
+docker-compose up --build
+```
 
-The backend will be available at ```http://127.0.0.1:8000/```.
+The backend will be available at:
+```
+http://127.0.0.1:8000/
+```
 
 ---
 
-## Running Tests
-To run all tests with pytest:
+## Tests
+This project uses **pytest** for unit tests and **pytest-cov** for code coverage.
+
+### Running all tests
+Open a new terminal while the Docker containers are already running and execute the following command to run all tests, display code coverage and create an HTML report:
+
 ```bash
-pytest
+docker-compose exec web pytest
 ```
 
-For code coverage:
-```bash
-pytest --cov=.
-```
-
-HTML report will be generated in ```htmlcov/```.
+The HTML report is generated in the ```htmlcov/``` directory.
