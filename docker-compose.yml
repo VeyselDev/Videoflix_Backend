@@ -1,5 +1,4 @@
 services:
-
   db:
     image: postgres:latest
     container_name: videoflix_database
@@ -34,9 +33,6 @@ services:
     depends_on:
       - db
       - redis
-
-
-
 
 volumes:
   postgres_data:
