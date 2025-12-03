@@ -18,7 +18,12 @@ def auto_process_video_on_save(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=Video)
 def auto_delete_file_on_delete(sender, instance, **kwargs):
-    main_dir = os.path.dirname(instance.id)
+    if instance.video_file:
+        main_dir = os.path.dirname(instance.video_file.path)
+        if os.path.exists(main_dir):
+            shutil.rmtree(main_dir, ignore_errors=True)
 
-    if os.path.exists(main_dir):
-        shutil.rmtree(main_dir, ignore_errors=True)
+    if instance.thumbnail:
+        thumb_dir = os.path.dirname(instance.thumbnail.path)
+        if os.path.exists(thumb_dir):
+            shutil.rmtree(thumb_dir, ignore_errors=True)
