@@ -1,7 +1,7 @@
 # Videoflix Backend
  
 Videoflix is a video streaming platform that allows users to browse and watch videos. 
-The project focuses on implementing a secure authentication system and processing video conversions in the background. 
+The project focuses on implementing an authentication system and processing video conversions in the background. 
 The backend handles user authentication, video streaming and background tasks.
 It is built with **Django** and **Django REST Framework**.
 
@@ -12,6 +12,7 @@ It is built with **Django** and **Django REST Framework**.
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Build and Run the Application](#-build-and-run-the-application)
+- [Seed initial data](#seed-initial-data)
 - [Running Tests](#running-tests)
 
 ---
@@ -61,6 +62,23 @@ docker-compose up --build
 The backend will be available at:
 ```
 http://127.0.0.1:8000/
+```
+
+---
+
+## Seed initial data
+To seed the database with initial data such as users and videos, open a new terminal while the Docker containers are already running and execute the following commands:
+
+### 1. Seed Users
+```bash
+docker-compose exec web python manage.py seed_users
+```
+
+The default login credentials are `user@example.com` for the email and `password` for the password.
+
+### 2. Seed Videos
+```bash
+docker-compose exec web python manage.py seed_videos
 ```
 
 ---
