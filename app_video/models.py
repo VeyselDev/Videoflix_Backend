@@ -1,22 +1,19 @@
 import os
-from datetime import datetime
 
 from django.db import models
 from django.utils.text import slugify
 
 
-def build_upload_path(self, filename, folder):
-    title_slug = slugify(self.title)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    base, ext = os.path.splitext(filename)
-    new_filename = f"{timestamp}_{slugify(base)}{ext}"
-    return os.path.join(folder, title_slug, new_filename)
+def build_upload_path(instance, filename, prefix):
+    title_slug = slugify(instance.title)
+    _, ext = os.path.splitext(filename)
+    return os.path.join(title_slug, f"{prefix}{ext.lower()}")
 
-def video_upload_path(self, filename):
-    return build_upload_path(self, filename, "videos")
+def video_upload_path(instance, filename):
+    return build_upload_path(instance, filename, "video")
 
-def thumbnail_upload_path(self, filename):
-    return build_upload_path(self, filename, "thumbnails")
+def thumbnail_upload_path(instance, filename):
+    return build_upload_path(instance, filename, "thumbnail")
 
 
 class Video(models.Model):
@@ -27,9 +24,9 @@ class Video(models.Model):
         ('drama', 'Drama'),
         ('horror', 'Horror'),
     ]
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True, blank=False, null=False)
     description = models.TextField(blank=True)
-    category = models.CharField(max_length=64, choices=CATEGORY_CHOICES, db_index=True)
+    category = models.CharField(max_length=64, choices=CATEGORY_CHOICES, blank=False, null=False, db_index=True)
     video_file = models.FileField(upload_to=video_upload_path, blank=False, null=False)
     thumbnail = models.ImageField(upload_to=thumbnail_upload_path, blank=False, null=False)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
