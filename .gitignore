@@ -5,6 +5,7 @@
 __pycache__
 db.sqlite3
 media
+static
 
 # Backup files #
 *.bak
@@ -142,5 +143,4 @@ GitHub.sublime-settings
 */migrations/*
 !*/migrations/__init__.py
 
-.env
 DOCKER_SETUP.md
