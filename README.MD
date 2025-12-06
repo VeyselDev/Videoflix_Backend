@@ -35,7 +35,7 @@ cd Videoflix_Backend
 ```
 
 ### 2. Environment Variables
-Run the following command to create a `.env` file by copying the existing `.env.template`:
+Run the following command to create a `.env` file from the template:
 
 **macOS / Linux**
 ```bash
@@ -48,6 +48,21 @@ copy .env.template .env
 ```
 
 After creating the file, open the `.env` file and update the values with your own configuration.
+
+### 3. Docker Compose Override for Development
+Run the following command to create a `docker-compose.override.yml` file from the template:
+
+**macOS / Linux**
+```bash
+cp docker-compose.override.yml.template docker-compose.override.yml
+```
+
+**Windows PowerShell**
+```bash
+copy docker-compose.override.yml.template docker-compose.override.yml
+```
+
+After creating the file, open docker-compose.override.yml and adjust any settings as needed for your local development environment
 
 ---
 
@@ -94,3 +109,6 @@ docker-compose exec web pytest
 ```
 
 The HTML report is generated in the ```htmlcov/``` directory.
+
+
+## Quick Commands Übersicht
