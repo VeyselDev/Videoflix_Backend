@@ -144,4 +144,3 @@ GitHub.sublime-settings
 !*/migrations/__init__.py
 
 DOCKER_SETUP.md
-docker-compose.override.yml
