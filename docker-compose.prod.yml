@@ -1,0 +1,57 @@
+services:
+  traefik:
+    command:
+      - "--log.level=${TRAEFIK_LOG_LEVEL:-ERROR}"
+      - "--log.format=json"
+      - "--accesslog=true"
+      - "--accesslog.format=json"
+      - "--api.dashboard=${TRAEFIK_DASHBOARD:-false}"
+      - "--api.insecure=${TRAEFIK_INSECURE:-false}"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik_proxy"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=${TRAEFIK_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--entrypoints.websecure.http.middlewares=security-headers@docker"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+
+  backend:
+    build:
+      context: .
+      target: prod
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.videoflix.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.videoflix.entrypoints=websecure"
+      - "traefik.http.routers.videoflix.tls=true"
+      - "traefik.http.routers.videoflix.tls.certresolver=myresolver"
+      - "traefik.http.services.videoflix.loadbalancer.server.port=8000"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.http.middlewares.security-headers.headers.frameDeny=true"
+      - "traefik.http.middlewares.security-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.security-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.security-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.security-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.security-headers.headers.stsPreload=true"
+      - "traefik.http.routers.videoflix.middlewares=security-headers@docker"
+
+  rq_worker:
+    build:
+      context: .
+      target: prod
+
+  rq_scheduler:
+    build:
+      context: .
+      target: prod
