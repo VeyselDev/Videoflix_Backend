@@ -143,4 +143,4 @@ GitHub.sublime-settings
 */migrations/*
 !*/migrations/__init__.py
 
-DOCKER_SETUP.md
+!seed_data/*
