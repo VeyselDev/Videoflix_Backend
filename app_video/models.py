@@ -1,19 +1,6 @@
-import os
-
 from django.db import models
-from django.utils.text import slugify
 
-
-def build_upload_path(instance, filename, prefix):
-    title_slug = slugify(instance.title)
-    _, ext = os.path.splitext(filename)
-    return os.path.join(title_slug, f"{prefix}{ext.lower()}")
-
-def video_upload_path(instance, filename):
-    return build_upload_path(instance, filename, "video")
-
-def thumbnail_upload_path(instance, filename):
-    return build_upload_path(instance, filename, "thumbnail")
+from app_video.utils.upload_path_helpers import video_upload_path, thumbnail_upload_path
 
 
 class Video(models.Model):

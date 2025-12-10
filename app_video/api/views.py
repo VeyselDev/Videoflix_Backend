@@ -28,12 +28,11 @@ class HLSManifestView(APIView):
         except Video.DoesNotExist:
             raise Http404("Video not found")
 
-        base, _ = os.path.splitext(video.video_file.path)
-
-        playlist_path = os.path.join(f"{base}_{resolution}", "index.m3u8")
+        base_dir = os.path.dirname(video.video_file.path)
+        playlist_path = os.path.join(base_dir, 'hls', resolution, 'index.m3u8')
 
         if not os.path.exists(playlist_path):
-            raise Http404("Manifest not found")
+            raise Http404(f"Manifest not found: {playlist_path}")
 
         return FileResponse(open(playlist_path, 'rb'), content_type='application/vnd.apple.mpegurl')
 
@@ -47,11 +46,11 @@ class HLSSegmentView(APIView):
         except Video.DoesNotExist:
             raise Http404("Video not found")
 
-        base, _ = os.path.splitext(video.video_file.path)
+        base_dir = os.path.dirname(video.video_file.path)
 
-        segment_path = os.path.join(f"{base}_{resolution}", segment)
+        segment_path = os.path.join(base_dir, 'hls', resolution, segment)
 
         if not os.path.exists(segment_path):
-            raise Http404("Segment not found")
+            raise Http404(f"Segment not found: {segment_path}")
 
         return FileResponse(open(segment_path, 'rb'), content_type='video/MP2T')
