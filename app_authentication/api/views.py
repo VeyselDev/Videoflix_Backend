@@ -18,8 +18,7 @@ from rq import Retry
 from app_authentication.api.serializers import RegistrationSerializer
 from app_authentication.models import CustomUser
 from app_authentication.tasks import send_activation_email
-from core import settings
-from core.settings import COOKIE_SECURE
+from core.settings import settings
 
 
 class RegisterView(APIView):
@@ -155,7 +154,7 @@ class CookieTokenRefreshView(TokenRefreshView):
             value=access_token,
             httponly=True,
             secure=settings.COOKIE_SECURE,
-            samesite='Lax' if settings.COOKIE_SECURE else None,
+            samesite='Lax' if settings.COOKIE_SECURE else None
         )
 
         return response
