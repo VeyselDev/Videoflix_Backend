@@ -1,4 +1,5 @@
-from core.utils.env_helpers import get_list_env, get_bool_env
+from core.settings.base import *
+from core.utils.env_helpers import get_list_env
 
 
 DEBUG = False
