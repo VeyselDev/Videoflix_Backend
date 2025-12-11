@@ -2,6 +2,7 @@ import os
 import sys
 
 ENV = os.environ.get('ENV')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 if ENV == 'dev':
     from core.settings.dev import *
