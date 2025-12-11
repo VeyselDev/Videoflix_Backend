@@ -16,7 +16,7 @@ services:
       - "8080:8080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik-dashboard.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`${BACKEND_HOST}`)"
       - "traefik.http.routers.traefik-dashboard.entrypoints=web"
       - "traefik.http.routers.traefik-dashboard.service=api@internal"
 
@@ -40,9 +40,15 @@ services:
       - static:/app/static
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.videoflix.rule=Host(`localhost`) && PathPrefix(`/`)"
+      - "traefik.http.routers.videoflix.rule=Host(`${BACKEND_HOST:-localhost}`) && PathPrefix(`/`)"
       - "traefik.http.routers.videoflix.entrypoints=web"
       - "traefik.http.services.videoflix.loadbalancer.server.port=8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://${BACKEND_HOST:-localhost}:8000/health/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   rq_worker:
     build:
