@@ -107,7 +107,7 @@ down-volumes: ## Stop containers and remove volumes
 ############################################################
 .PHONY: deploy
 
-deploy: ## Deploy to production (PROD only)
+deploy: ## Deploy (PROD only)
 	@echo "$(YELLOW)╔════════════════════════════════════════╗$(RESET)"
 	@echo "$(YELLOW)║       PRODUCTION DEPLOYMENT            ║$(RESET)"
 	@echo "$(YELLOW)╚════════════════════════════════════════╝$(RESET)"
