@@ -111,20 +111,23 @@ deploy: ## Deploy (PROD only)
 	@echo "$(YELLOW)╔════════════════════════════════════════╗$(RESET)"
 	@echo "$(YELLOW)║       PRODUCTION DEPLOYMENT            ║$(RESET)"
 	@echo "$(YELLOW)╚════════════════════════════════════════╝$(RESET)"
-	@echo "$$(git rev-parse HEAD)" > .last-deploy
-	@echo "$(GREEN)[1/6] Pulling latest code...$(RESET)"
-	@git pull origin main
-	@echo "$(GREEN)[2/6] Building images...$(RESET)"
+	@echo
+	@echo "$(GREEN)[1/7] Fetching latest code from origin...$(RESET)"
+	@git fetch origin main
+	@echo "$(GREEN)[2/7] Resetting local branch to origin/main...$(RESET)"
+	@git reset --hard origin/main
+	@echo "$(GREEN)[3/7] Building images...$(RESET)"
 	@$(MAKE) build
-	@echo "$(GREEN)[3/6] Stopping old containers...$(RESET)"
+	@echo "$(GREEN)[4/7] Stopping old containers...$(RESET)"
 	@$(MAKE) down
-	@echo "$(GREEN)[4/6] Starting new containers...$(RESET)"
+	@echo "$(GREEN)[5/7] Starting new containers...$(RESET)"
 	@$(MAKE) up
-	@echo "$(GREEN)[5/6] Running migrations...$(RESET)"
+	@echo "$(GREEN)[6/7] Running migrations...$(RESET)"
 	@$(MAKE) migrate
-	@echo "$(GREEN)[6/6] Collecting static files...$(RESET)"
+	@echo "$(GREEN)[7/7] Collecting static files...$(RESET)"
 	@$(MAKE) collectstatic
 	@echo "$(GREEN) Deployment completed successfully!$(RESET)"
+
 
 
 ############################################################
