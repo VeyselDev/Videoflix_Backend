@@ -46,10 +46,9 @@ guard-prod:
 ############################################################
 help: ## Show all available commands
 	@echo
-	@echo "$(GREEN)╔════════════════════════════════════════════════════════════╗$(RESET)"
-	@echo "$(GREEN)║  Videoflix_Backend Makefile                                ║$(RESET)"
-	@echo "$(GREEN)║  Current Environment: $(ENV)                                  ║$(RESET)"
-	@echo "$(GREEN)╚════════════════════════════════════════════════════════════╝$(RESET)"
+	@echo "$(GREEN)Videoflix_Backend Makefile$(RESET)"
+	@echo "$(GREEN)Current Environment: $(ENV)$(RESET)"
+	@echo "$(GREEN)==========================$(RESET)"
 	@echo
 	@echo '${YELLOW}Available commands:${RESET}'
 	@echo
@@ -108,9 +107,8 @@ down-volumes: ## Stop containers and remove volumes
 .PHONY: deploy
 
 deploy: ## Deploy (PROD only)
-	@echo "$(YELLOW)╔════════════════════════════════════════╗$(RESET)"
-	@echo "$(YELLOW)║       PRODUCTION DEPLOYMENT            ║$(RESET)"
-	@echo "$(YELLOW)╚════════════════════════════════════════╝$(RESET)"
+	@echo "$(YELLOW)PRODUCTION DEPLOYMENT$(RESET)"
+	@echo "$(YELLOW)=====================$(RESET)"
 	@echo
 	@echo "$(GREEN)[1/7] Fetching latest code from origin...$(RESET)"
 	@git fetch origin main
