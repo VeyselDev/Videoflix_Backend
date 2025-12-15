@@ -22,7 +22,8 @@ services:
       - "traefik.http.routers.videoflix-media.entrypoints=websecure"
       - "traefik.http.routers.videoflix-media.tls=true"
       - "traefik.http.routers.videoflix-media.service=videoflix-backend@docker"
-      - "traefik.http.routers.videoflix-media.middlewares=security-headers@docker"
+      - "traefik.http.routers.videoflix-media.middlewares=security-headers@docker,media-strip@docker"
+      - "traefik.http.middlewares.media-strip.stripprefix.prefixes=/media"
 
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://backend:8000/health/ || exit 1" ]
