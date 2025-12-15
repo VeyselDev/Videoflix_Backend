@@ -5,7 +5,7 @@ services:
       target: prod
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.videoflix-backend.rule=Host(`${BACKEND_HOST}`)"
+      - "traefik.http.routers.videoflix-backend.rule=Host(`${BACKEND_HOST}`) && PathPrefix(`/media`)"
       - "traefik.http.routers.videoflix-backend.entrypoints=websecure"
       - "traefik.http.routers.videoflix-backend.tls=true"
       - "traefik.http.routers.videoflix-backend.tls.certresolver=myresolver"
