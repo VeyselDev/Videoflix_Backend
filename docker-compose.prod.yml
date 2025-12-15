@@ -5,11 +5,11 @@ services:
       target: prod
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.videoflix.rule=Host(`${BACKEND_HOST}`)"
-      - "traefik.http.routers.videoflix.entrypoints=websecure"
-      - "traefik.http.routers.videoflix.tls=true"
-      - "traefik.http.routers.videoflix.tls.certresolver=myresolver"
-      - "traefik.http.services.videoflix.loadbalancer.server.port=8000"
+      - "traefik.http.routers.videoflix-backend.rule=Host(`${BACKEND_HOST}`)"
+      - "traefik.http.routers.videoflix-backend.entrypoints=websecure"
+      - "traefik.http.routers.videoflix-backend.tls=true"
+      - "traefik.http.routers.videoflix-backend.tls.certresolver=myresolver"
+      - "traefik.http.services.videoflix-backend.loadbalancer.server.port=8000"
       - "traefik.docker.network=traefik_proxy"
       - "traefik.http.middlewares.security-headers.headers.frameDeny=true"
       - "traefik.http.middlewares.security-headers.headers.contentTypeNosniff=true"
@@ -17,7 +17,7 @@ services:
       - "traefik.http.middlewares.security-headers.headers.stsSeconds=31536000"
       - "traefik.http.middlewares.security-headers.headers.stsIncludeSubdomains=true"
       - "traefik.http.middlewares.security-headers.headers.stsPreload=true"
-      - "traefik.http.routers.videoflix.middlewares=security-headers@docker"
+      - "traefik.http.routers.videoflix-backend.middlewares=security-headers@docker"
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://backend:8000/health/ || exit 1" ]
       interval: 30s
