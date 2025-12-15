@@ -1,21 +1,4 @@
 services:
-  traefik:
-    image: traefik:v3.6.4
-    container_name: traefik
-    restart: unless-stopped
-    env_file:
-      - .env
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - traefik_proxy
-    healthcheck:
-      test: [ "CMD", "traefik", "healthcheck", "--ping" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-
   postgres:
     image: postgres:18.1-alpine
     container_name: postgres
