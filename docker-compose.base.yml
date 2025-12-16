@@ -45,8 +45,8 @@ services:
       - PYTHONUNBUFFERED=1
       - DJANGO_SETTINGS_MODULE=core.settings.settings
     volumes:
-      - media:/app/media
       - static:/app/static
+      - media:/app/media
     networks:
       - traefik_proxy
     depends_on:
@@ -65,8 +65,8 @@ services:
       - DJANGO_SETTINGS_MODULE=core.settings.settings
     command: python manage.py rqworker default
     volumes:
-      - media:/app/media
       - static:/app/static
+      - media:/app/media
     networks:
       - traefik_proxy
     depends_on:
@@ -87,8 +87,8 @@ services:
       - DJANGO_SETTINGS_MODULE=core.settings.settings
     command: python manage.py rqscheduler
     volumes:
-      - media:/app/media
       - static:/app/static
+      - media:/app/media
     networks:
       - traefik_proxy
     depends_on:
@@ -102,8 +102,8 @@ services:
 volumes:
   postgres_data:
   redis_data:
-  media:
   static:
+  media:
 
 networks:
   traefik_proxy:

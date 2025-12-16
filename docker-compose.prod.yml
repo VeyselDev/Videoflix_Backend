@@ -1,4 +1,23 @@
 services:
+  static:
+    image: nginx:alpine
+    container_name: static
+    restart: unless-stopped
+    volumes:
+      - static:/usr/share/nginx/html/static:ro
+      - media:/usr/share/nginx/html/media:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.static.rule=Host(`${BACKEND_HOST}`) && (PathPrefix(`/static`) || PathPrefix(`/media`))"
+      - "traefik.http.routers.static.entrypoints=websecure"
+      - "traefik.http.routers.static.tls=true"
+      - "traefik.http.routers.static.tls.certresolver=myresolver"
+      - "traefik.http.services.static.loadbalancer.server.port=80"
+      - "traefik.docker.network=traefik_proxy"
+
   backend:
     build:
       context: .
@@ -18,13 +37,6 @@ services:
       - "traefik.http.middlewares.security-headers.headers.stsIncludeSubdomains=true"
       - "traefik.http.middlewares.security-headers.headers.stsPreload=true"
       - "traefik.http.routers.videoflix-backend.middlewares=security-headers@docker"
-      - "traefik.http.routers.videoflix-media.rule=Host(`${BACKEND_HOST}`) && PathPrefix(`/media`)"
-      - "traefik.http.routers.videoflix-media.entrypoints=websecure"
-      - "traefik.http.routers.videoflix-media.tls=true"
-      - "traefik.http.routers.videoflix-media.service=videoflix-backend@docker"
-      - "traefik.http.routers.videoflix-media.middlewares=security-headers@docker,media-strip@docker"
-      - "traefik.http.middlewares.media-strip.stripprefix.prefixes=/media"
-
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://backend:8000/health/ || exit 1" ]
       interval: 30s
