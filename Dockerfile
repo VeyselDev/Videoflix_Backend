@@ -64,15 +64,15 @@ RUN rm -rf .git .env* .gitignore *.template docker-compose* Makefile
 COPY entrypoint.backend.sh .
 RUN chmod +x entrypoint.backend.sh
 
-RUN addgroup -g 1000 deployer && \
-    adduser -D -u 1000 -G deployer deployer
+RUN addgroup -g 1000 appuser && \
+    adduser -D -u 1000 -G appuser appuser
 
 RUN mkdir -p /app/media /app/static && \
-    chown -R deployer:deployer /app/media /app/static && \
+    chown -R appuser:appuser /app/media /app/static && \
     chmod -R 775 /app/media && \
     chmod -R 755 /app/static
 
-USER deployer
+USER appuser
 
 EXPOSE 8000
 
