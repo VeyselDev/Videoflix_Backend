@@ -8,7 +8,6 @@ RESET  := $(shell tput -Txterm sgr0)
 DEFAULT_ENV := dev
 VALID_ENVS := dev prod
 
-TRAEFIK_SERVICE := traefik
 BACKEND_SERVICE := backend
 DB_SERVICE := postgres
 REDIS_SERVICE := redis
@@ -92,7 +91,7 @@ restart: ## Restart all running services
 restart-fresh: down build up migrate ## Complete rebuild and restart
 	@echo "$(GREEN)Fresh restart completed!$(RESET)"
 
-down: ## Stop containers and remove network
+down: ## Stop containers and remove networks
 	@echo "$(GREEN)Stopping containers...$(RESET)"
 	$(DOCKER_COMPOSE) down
 
@@ -127,7 +126,6 @@ deploy: ## Deploy (PROD only)
 	@echo "$(GREEN) Deployment completed successfully!$(RESET)"
 
 
-
 ############################################################
 # Maintenance
 ############################################################
@@ -145,7 +143,7 @@ clean: ## Remove all containers, volumes, networks and unused images
 ############################################################
 # Logs
 ############################################################
-.PHONY: logs logs-backend logs-traefik logs-worker
+.PHONY: logs logs-backend logs-worker
 
 logs: ## Show logs for all services
 	@echo "$(GREEN)Streaming logs...$(RESET)"
@@ -153,9 +151,6 @@ logs: ## Show logs for all services
 
 logs-backend: ## Show backend logs
 	$(DOCKER_COMPOSE) logs -f $(BACKEND_SERVICE)
-
-logs-traefik: ## Show Traefik logs
-	$(DOCKER_COMPOSE) logs -f traefik
 
 logs-worker: ## Show worker logs
 	$(DOCKER_COMPOSE) logs -f $(WORKER_SERVICE)
@@ -174,9 +169,6 @@ shell-postgres: ## Open Postgres shell
 
 shell-redis: ## Open Redis CLI
 	$(DOCKER_COMPOSE) exec $(REDIS_SERVICE) redis-cli
-
-shell-traefik: ## Open traefik shell
-	$(DOCKER_COMPOSE) exec $(TRAEFIK_SERVICE) traefik sh
 
 
 ############################################################
@@ -242,13 +234,13 @@ test-coverage: guard-dev ## Run tests with coverage (DEV only)
 ############################################################
 # Seeders
 ############################################################
-.PHONY: seed-users seed-videos seed-all
+.PHONY: seed-users seed-videos
 
-seed-users: guard-dev ## Seed sample users (DEV only)
+seed-users: ## Seed sample users
 	@echo "$(GREEN)Seeding sample users...$(RESET)"
 	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py seed_users
 
-seed-videos: guard-dev ## Seed sample videos (DEV only)
+seed-videos: ## Seed sample videos
 	@echo "$(GREEN)Seeding sample videos...$(RESET)"
 	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py seed_videos
 
