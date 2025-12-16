@@ -94,7 +94,7 @@ fi
 # ============================================
 # Create or update superuser (optional)
 # ============================================
-if [ "${CREATE_SUPERUSER:-false}" = "true" ]; then
+if [ "${ENV:-prod}" = "dev" ] && [ "${CREATE_SUPERUSER:-false}" = "true" ]; then
   echo "Superuser check..."
 
   python manage.py shell <<EOF
