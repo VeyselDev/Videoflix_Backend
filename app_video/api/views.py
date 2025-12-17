@@ -1,5 +1,6 @@
 import os
 
+import django_rq
 from django.http import Http404, FileResponse
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -14,8 +15,23 @@ class VideoListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        videos = Video.objects.all().order_by('-created_at')
-        serializer = VideoListSerializer(videos, many=True, context={'request': request})
+        all_videos = Video.objects.all().order_by('-created_at')
+
+        job_ids = [v.rq_job_id for v in all_videos if v.rq_job_id]
+        if not job_ids:
+            serializer = VideoListSerializer([], many=True, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        queue = django_rq.get_queue('default')
+        jobs = {job.id: job for job in queue.jobs if job.id in job_ids}
+
+        ready_videos = []
+        for video in all_videos:
+            job = jobs.get(video.rq_job_id)
+            if job is None or job.is_finished:
+                ready_videos.append(video)
+
+        serializer = VideoListSerializer(ready_videos, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

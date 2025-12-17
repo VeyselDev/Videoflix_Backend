@@ -13,7 +13,9 @@ from app_video.tasks import convert_video_to_hls
 def auto_process_video_on_save(sender, instance, created, **kwargs):
     if created and instance.video_file:
         queue = django_rq.get_queue('default', autocommit=True)
-        queue.enqueue(convert_video_to_hls, instance.id)
+        job = queue.enqueue(convert_video_to_hls, instance.id)
+        instance.rq_job_id = job.id
+        instance.save()
 
 
 @receiver(post_delete, sender=Video)

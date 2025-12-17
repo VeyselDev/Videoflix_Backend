@@ -17,6 +17,7 @@ class Video(models.Model):
     video_file = models.FileField(upload_to=video_upload_path, blank=False, null=False)
     thumbnail = models.ImageField(upload_to=thumbnail_upload_path, blank=False, null=False)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    rq_job_id = models.CharField(max_length=255, blank=True, null=True)
 
     @property
     def thumbnail_url(self):
