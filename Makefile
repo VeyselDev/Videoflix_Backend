@@ -234,11 +234,7 @@ test-coverage: guard-dev ## Run tests with coverage (DEV only)
 ############################################################
 # Seeders
 ############################################################
-.PHONY: seed-users seed-videos
-
-seed-users: ## Seed sample users
-	@echo "$(GREEN)Seeding sample users...$(RESET)"
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py seed_users
+.PHONY: seed-videos
 
 seed-videos: ## Seed sample videos
 	@echo "$(GREEN)Seeding sample videos...$(RESET)"
