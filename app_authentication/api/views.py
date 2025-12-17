@@ -6,7 +6,7 @@ from django.template.loader import render_to_string
 from django.utils.encoding import force_str, force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
@@ -43,7 +43,6 @@ class RegisterView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class ActivateView(APIView):
     permission_classes = [AllowAny]
 
@@ -60,7 +59,6 @@ class ActivateView(APIView):
             return render(request, 'authentication/activation_success.html', status=200)
         else:
             return render(request, 'authentication/activation_failed.html', status=400)
-
 
 
 class CookieTokenLoginView(TokenObtainPairView):
@@ -99,7 +97,6 @@ class CookieTokenLoginView(TokenObtainPairView):
         }
 
         return response
-
 
 
 class LogoutView(APIView):
@@ -159,6 +156,7 @@ class CookieTokenRefreshView(TokenRefreshView):
 
         return response
 
+
 class PasswordResetView(APIView):
     permission_classes = [AllowAny]
 
@@ -190,7 +188,6 @@ class PasswordResetView(APIView):
                 html_message=html_message,
                 fail_silently=False,
             )
-
 
         return Response({'detail': 'An email has been sent to reset your password.'}, status=status.HTTP_200_OK)
 
