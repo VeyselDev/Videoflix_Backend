@@ -43,6 +43,8 @@ guard-prod:
 ############################################################
 # Help
 ############################################################
+.PHONY: help
+
 help: ## Show all available commands
 	@echo
 	@echo "$(GREEN)Videoflix_Backend Makefile$(RESET)"
@@ -59,7 +61,7 @@ help: ## Show all available commands
 ############################################################
 # Core
 ############################################################
-.PHONY: config build build-no-cache up restart down down-volumes
+.PHONY: config build build-no-cache up start start-quick restart restart-fresh down down-volumes
 
 config: ## Show the fully merged Docker Compose configuration
 	@echo "$(GREEN)Showing Docker Compose config...$(RESET)"
@@ -71,7 +73,7 @@ build: ## Build all images
 	@echo "$(GREEN)Build completed.$(RESET)"
 
 build-no-cache: ## Build all images without cache
-	@echo "$(GREEN)Building images (no cache)...$(RESET)"
+	@echo "$(GREEN)Building images without cache...$(RESET)"
 	$(DOCKER_COMPOSE) build --no-cache
 	@echo "$(GREEN)Build completed.$(RESET)"
 
@@ -80,23 +82,26 @@ up: ## Start all services in detached mode
 	$(DOCKER_COMPOSE) up -d
 	@echo "$(GREEN)Containers started.$(RESET)"
 
-start: build up migrate ## Quick start: build, up, migrate
+start: build-no-cache up migrate ## Build images without cache, start services and run migrations
 	@echo "$(GREEN)Application ready!$(RESET)"
 
-restart: ## Restart all running services
+start-quick: build up migrate ## Incremental start: build if needed, start services and run migrations
+	@echo "$(GREEN)Application ready!$(RESET)"
+
+restart: ## Restart running containers without rebuilding images
 	@echo "$(GREEN)Restarting containers...$(RESET)"
 	$(DOCKER_COMPOSE) restart
 	@echo "$(GREEN)Restart completed.$(RESET)"
 
-restart-fresh: down build up migrate ## Complete rebuild and restart
+restart-fresh: down build up migrate ## Stop and delete containers, rebuild images, start services and run migrations
 	@echo "$(GREEN)Fresh restart completed!$(RESET)"
 
-down: ## Stop containers and remove networks
-	@echo "$(GREEN)Stopping containers...$(RESET)"
+down: ## Stop and delete containers and networks
+	@echo "$(GREEN)Stopping and deleting containers and networks...$(RESET)"
 	$(DOCKER_COMPOSE) down
 
-down-volumes: ## Stop containers and remove volumes
-	@echo "$(GREEN)Stopping containers and deleting volumes...$(RESET)"
+down-volumes: ## Stop and delete containers, networks and volumes
+	@echo "$(GREEN)Stopping and deleting containers, networks and volumes...$(RESET)"
 	$(DOCKER_COMPOSE) down -v
 
 
@@ -105,23 +110,25 @@ down-volumes: ## Stop containers and remove volumes
 ############################################################
 .PHONY: deploy
 
-deploy: ## Deploy (PROD only)
+deploy: guard-prod ## Deploy (PROD only)
 	@echo "$(YELLOW)PRODUCTION DEPLOYMENT$(RESET)"
 	@echo "$(YELLOW)=====================$(RESET)"
 	@echo
-	@echo "$(GREEN)[1/7] Fetching latest code from origin...$(RESET)"
+	@echo "$(GREEN)[1/8] Running Django security checks...$(RESET)"
+	@$(MAKE) check-security
+	@echo "$(GREEN)[2/8] Fetching latest code from origin...$(RESET)"
 	@git fetch origin main
-	@echo "$(GREEN)[2/7] Resetting local branch to origin/main...$(RESET)"
+	@echo "$(GREEN)[3/8] Resetting local branch to origin/main...$(RESET)"
 	@git reset --hard origin/main
-	@echo "$(GREEN)[3/7] Building images...$(RESET)"
+	@echo "$(GREEN)[4/8] Building images...$(RESET)"
 	@$(MAKE) build
-	@echo "$(GREEN)[4/7] Stopping old containers...$(RESET)"
+	@echo "$(GREEN)[5/8] Stopping old containers...$(RESET)"
 	@$(MAKE) down
-	@echo "$(GREEN)[5/7] Starting new containers...$(RESET)"
+	@echo "$(GREEN)[6/8] Starting new containers...$(RESET)"
 	@$(MAKE) up
-	@echo "$(GREEN)[6/7] Running migrations...$(RESET)"
+	@echo "$(GREEN)[7/8] Running migrations...$(RESET)"
 	@$(MAKE) migrate
-	@echo "$(GREEN)[7/7] Collecting static files...$(RESET)"
+	@echo "$(GREEN)[8/8] Collecting static files...$(RESET)"
 	@$(MAKE) collectstatic
 	@echo "$(GREEN) Deployment completed successfully!$(RESET)"
 
@@ -143,11 +150,19 @@ clean: ## Remove all containers, volumes, networks and unused images
 ############################################################
 # Logs
 ############################################################
-.PHONY: logs logs-backend logs-worker
+.PHONY: logs logs-postgres logs-redis logs-backend logs-worker
 
 logs: ## Show logs for all services
 	@echo "$(GREEN)Streaming logs...$(RESET)"
 	$(DOCKER_COMPOSE) logs -f
+
+logs-postgres: ## Show Postgres logs
+	@echo "$(GREEN)Streaming Postgres logs...$(RESET)"
+	$(DOCKER_COMPOSE) logs -f $(DB_SERVICE)
+
+logs-redis: ## Show Redis logs
+	@echo "$(GREEN)Streaming Redis logs...$(RESET)"
+	$(DOCKER_COMPOSE) logs -f $(REDIS_SERVICE)
 
 logs-backend: ## Show backend logs
 	$(DOCKER_COMPOSE) logs -f $(BACKEND_SERVICE)
@@ -159,16 +174,16 @@ logs-worker: ## Show worker logs
 ############################################################
 # Shell Access
 ############################################################
-.PHONY: shell-backend shell-postgres shell-redis
-
-shell-backend: ## Open shell inside backend container
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) sh
+.PHONY: shell-postgres shell-redis shell-backend
 
 shell-postgres: ## Open Postgres shell
 	$(DOCKER_COMPOSE) exec $(DB_SERVICE) psql -U $(DB_USER) -d $(DB_NAME)
 
 shell-redis: ## Open Redis CLI
 	$(DOCKER_COMPOSE) exec $(REDIS_SERVICE) redis-cli
+
+shell-backend: ## Open shell inside backend container
+	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) sh
 
 
 ############################################################
@@ -193,21 +208,9 @@ createsuperuser: ## Create superuser
 
 
 ############################################################
-# Database Backup & Restore
+# Database
 ############################################################
-.PHONY: db-backup db-restore db-reset
-
-db-backup: ## Create a database backup
-	@echo "$(GREEN)Creating database backup...$(RESET)"
-	@TS=$$(date +%Y%m%d_%H%M%S); \
-	$(DOCKER_COMPOSE) exec $(DB_SERVICE) pg_dump -U $(DB_USER) $(DB_NAME) > backup_$${TS}.sql; \
-	echo "$(GREEN)Backup created: backup_$${TS}.sql$(RESET)"
-
-db-restore: ## Restore database (usage: make db-restore FILE=backup.sql)
-	@[ -f "$(FILE)" ] || { echo "$(RED)Error: File $(FILE) not found$(RESET)"; exit 1; }
-	@echo "$(YELLOW)Restoring from $(FILE)...$(RESET)"
-	cat $(FILE) | $(DOCKER_COMPOSE) exec -T $(DB_SERVICE) psql -U $(DB_USER) $(DB_NAME)
-	@echo "$(GREEN)Restore completed.$(RESET)"
+.PHONY: db-reset
 
 db-reset: guard-dev ## Reset database (DEV only)
 	@echo "$(RED)WARNING: This will delete ALL database data.$(RESET)"
@@ -262,4 +265,5 @@ check-security: ## Run Django security checks
 	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py check --deploy
 
 generate-secret-key: ## Generate Django SECRET_KEY
-	@python3 -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
+	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py shell -c "from django.core.management.utils import get_random_secret_key; print(f'Secret Key: {get_random_secret_key()}')"
+
