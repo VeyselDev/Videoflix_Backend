@@ -1,31 +1,26 @@
 # Videoflix Backend
- 
-Videoflix is a video streaming platform that allows users to browse and watch videos. 
-The project focuses on implementing an authentication system and processing video conversions in the background. 
-The backend handles user authentication, video streaming and background tasks.
-It is built with **Django** and **Django REST Framework**.
+Videoflix is a video streaming platform where users can browse and watch videos. 
+The backend, built with **Django** and **Django REST Framework**, manages user authentication, video streaming and background processing of video conversions.
 
 ---
 
 ## Table of Contents
-
 - [Requirements](#requirements)
 - [Installation](#installation)
-- [Build and Run the Application](#-build-and-run-the-application)
-- [Seed initial data](#seed-initial-data)
-- [Running Tests](#running-tests)
+- [Quick Commands Overview](#quick-commands-overview)
+- [Build and Run the Application](#build-and-run-the-application)
+- [Tests](#tests)
 
 ---
 
 ## Requirements
-
 - Git
 - Docker Desktop with Docker Compose
+- Make
 
 ---
 
 ## Installation
-
 ### 1. Clone the repository
 Open the terminal and run:
 
@@ -35,34 +30,43 @@ cd Videoflix_Backend
 ```
 
 ### 2. Environment Variables
-Run the following command to create a `.env` file from the template:
+The project uses separate environment configurations for development and production.
 
-**macOS / Linux**
+#### 2.1 Create the `.env` file
+Copy the appropriate template depending on your environment:
+
+**macOS / Linux:**
 ```bash
-cp .env.template .env
+# For development
+cp .env.dev.template .env
 ```
 
-**Windows PowerShell**
 ```bash
-copy .env.template .env
+# For production
+cp .env.prod.template .env
 ```
 
-After creating the file, open the `.env` file and update the values with your own configuration.
-
-### 3. Docker Compose Override for Development
-Run the following command to create a `docker-compose.override.yml` file from the template:
-
-**macOS / Linux**
+**Windows:**
 ```bash
-cp docker-compose.override.yml.template docker-compose.override.yml
+# For development
+copy .env.dev.template .env
 ```
 
-**Windows PowerShell**
 ```bash
-copy docker-compose.override.yml.template docker-compose.override.yml
+# For production
+copy .env.prod.template .env
 ```
 
-After creating the file, open docker-compose.override.yml and adjust any settings as needed for your local development environment
+#### 2.2 Update the configuration
+Open the `.env` file and set your own values.
+
+---
+
+## Quick Commands Overview
+Running this command displays a list of all available Makefile commands along with a short description for each. This is useful to quickly see what actions you can perform.
+```bash
+make help
+```
 
 ---
 
@@ -71,7 +75,7 @@ Make sure **Docker Desktop** is running and **Docker Compose** is available.
 
 Run the following command to build and start all services:
 ```bash
-docker-compose up --build
+make start
 ```
 
 The backend will be available at:
@@ -81,34 +85,20 @@ http://127.0.0.1:8000/
 
 ---
 
-## Seed initial data
-To seed the database with initial data such as users and videos, open a new terminal while the Docker containers are already running and execute the following commands:
-
-### 1. Seed Users
-```bash
-docker-compose exec web python manage.py seed_users
-```
-
-The default login credentials are `user@example.com` for the email and `password` for the password.
-
-### 2. Seed Videos
-```bash
-docker-compose exec web python manage.py seed_videos
-```
-
----
-
 ## Tests
-This project uses **pytest** for unit tests and **pytest-cov** for code coverage.
+This project uses **pytest** for unit tests and **pytest-cov** for measuring code coverage.
 
-### Running all tests
-Open a new terminal while the Docker containers are already running and execute the following command to run all tests, display code coverage and create an HTML report:
-
+### 1. Running Tests
+Run all tests with:
 ```bash
-docker-compose exec web pytest
+make test
 ```
 
-The HTML report is generated in the ```htmlcov/``` directory.
+### 2. Running Tests with coverage
+Run all tests with code coverage:
+```bash
+make test-coverage
+```
+The HTML coverage report is generated in the `htmlcov/` directory.
 
 
-## Quick Commands Übersicht
