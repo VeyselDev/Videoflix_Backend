@@ -12,6 +12,7 @@ BACKEND_SERVICE := backend
 DB_SERVICE := postgres
 REDIS_SERVICE := redis
 WORKER_SERVICE := rq_worker
+SCHEDULER_SERVICE := rq_scheduler
 
 # Read ENV from .env
 ifneq (,$(wildcard .env))
@@ -150,7 +151,7 @@ clean: ## Remove all containers, volumes, networks and unused images
 ############################################################
 # Logs
 ############################################################
-.PHONY: logs logs-postgres logs-redis logs-backend logs-worker
+.PHONY: logs logs-postgres logs-redis logs-backend logs-worker logs-scheduler
 
 logs: ## Show logs for all services
 	@echo "$(GREEN)Streaming logs...$(RESET)"
@@ -170,11 +171,14 @@ logs-backend: ## Show backend logs
 logs-worker: ## Show worker logs
 	$(DOCKER_COMPOSE) logs -f $(WORKER_SERVICE)
 
+logs-scheduler: ## Show scheduler logs
+	$(DOCKER_COMPOSE) logs -f $(SCHEDULER_SERVICE)
+
 
 ############################################################
 # Shell Access
 ############################################################
-.PHONY: shell-postgres shell-redis shell-backend
+.PHONY: shell-postgres shell-redis shell-backend shell-django
 
 shell-postgres: ## Open Postgres shell
 	$(DOCKER_COMPOSE) exec $(DB_SERVICE) psql -U $(DB_USER) -d $(DB_NAME)
@@ -182,8 +186,11 @@ shell-postgres: ## Open Postgres shell
 shell-redis: ## Open Redis CLI
 	$(DOCKER_COMPOSE) exec $(REDIS_SERVICE) redis-cli
 
-shell-backend: ## Open shell inside backend container
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) sh
+shell-backend: ## Open regular shell inside backend container
+	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) shell
+
+shell-django: ## Open Django shell inside backend container
+	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py shell
 
 
 ############################################################
