@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from app_authentication.models import CustomUser
+from app_auth.models import CustomUser
 
 
 class TestCustomUserModel(TestCase):
