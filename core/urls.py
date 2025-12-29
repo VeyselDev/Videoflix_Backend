@@ -8,7 +8,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('django-rq/', include('django_rq.urls')),
     path('', include("app_health_check.urls")),
-    path('api/', include('app_authentication.api.urls')),
+    path('api/', include('app_auth.api.urls')),
     path('api/', include('app_video.api.urls')),
 ]
 
