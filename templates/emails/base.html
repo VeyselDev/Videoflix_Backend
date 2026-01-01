@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    <style>
+      .accent {
+        color: #2E3EDF;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.5;
+        color: #000000;
+        margin: 0;
+        padding: 0;
+        background-color: #f9f9f9;
+      }
+
+      .email-container {
+        width: 100%;
+        padding: 20px 0;
+        text-align: center;
+      }
+
+      .email-content {
+        width: 600px;
+        max-width: 100%;
+        margin: 40px auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: left;
+      }
+
+      .logo {
+        display: block;
+        margin: 20px 0 0 0;
+        width: 150px;
+      }
+
+      .button {
+        display: inline-block;
+        padding: 12px 25px;
+        background-color: #2E3EDF;
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      p {
+        margin-bottom: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    {% block content %}{% endblock %}
+    <img src="{{ settings.FRONTEND_BASE_URL }}/assets/icons/logo_icon.svg" alt="Videoflix" class="logo">
+  </body>
+</html>
