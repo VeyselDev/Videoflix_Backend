@@ -6,7 +6,6 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.reverse import reverse
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -65,6 +64,7 @@ def get_cookie_kwargs():
         'httponly': True,
         'secure': not settings.DEBUG,
         'samesite': 'Lax',
+        'path': '/'
     }
 
 def get_refresh_token_from_cookies(request):
@@ -88,28 +88,25 @@ def clear_auth_cookies(response):
     return response
 
 
-def build_user_activation_link(request, user):
+def build_user_activation_link(user):
     """
-    Build absolute activation URL for a given user.
+
     """
     uidb64 = encode_uid(user)
     token = default_token_generator.make_token(user)
-    path = f'{settings.FRONTEND_USER_ACTIVATION_URL}?uid={uidb64}&token={token}'
-    #path = reverse('activate', kwargs={'uidb64': uidb64, 'token': token})
-    return request.build_absolute_uri(path)
+    return f'{settings.FRONTEND_BASE_URL}/pages/auth/activate.html?uid={uidb64}&token={token}'
 
 
 def is_user_token_valid(user, token):
     return default_token_generator.check_token(user, token)
 
-def build_password_reset_link(request, user):
+def build_password_reset_link(user):
     """
     Build absolute password reset URL.
     """
     uidb64 = encode_uid(user)
     token = default_token_generator.make_token(user)
-    path = reverse('password_confirm', kwargs={'uidb64': uidb64, 'token': token})
-    return request.build_absolute_uri(path)
+    return f'{settings.FRONTEND_BASE_URL}/pages/auth/confirm_password.html?uid={uidb64}&token={token}'
 
 
 def validate_user_token_or_fail(user, token) -> None:
