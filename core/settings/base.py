@@ -8,6 +8,7 @@ from core.utils.env_helpers import get_int_env, get_bool_env
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
+FRONTEND_BASE_URL = os.environ.get('FRONTEND_BASE_URL')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -20,9 +21,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'django_rq',
-    'app_authentication.apps.AppAuthenticationConfig',
+    'app_auth.apps.AppAuthConfig',
     'app_video.apps.AppVideoConfig',
-    'app_health_check',
+    'app_health_check'
 ]
 
 MIDDLEWARE = [
@@ -57,25 +58,29 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'app_authentication.api.authentication.CookieJWTAuthentication',
+        'app_auth.auth.cookie_jwt.CookieJWTAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(get_int_env('ACCESS_TOKEN_MINUTES', 15)),
+    'REFRESH_TOKEN_LIFETIME': timedelta(get_int_env('REFRESH_TOKEN_DAYS', 1)),
+    'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
 
 DATABASES = {
     'default': {
-        'ENGINE': os.environ.get('DB_ENGINE'),
+        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.postgresql'),
         'NAME': os.environ.get('DB_NAME'),
         'USER': os.environ.get('DB_USER'),
         'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': get_int_env('DB_PORT', 5432)
     }
 }
@@ -87,17 +92,20 @@ CACHES = {
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient'
         },
-        'KEY_PREFIX': 'videoflix'
+        'KEY_PREFIX': os.environ.get('REDIS_KEY_PREFIX')
     }
 }
 
+
+RQ_DEFAULT_QUEUE = os.environ.get('RQ_DEFAULT_QUEUE', 'default')
+
 RQ_QUEUES = {
-    'default': {
-        'HOST': os.environ.get('REDIS_HOST'),
+    RQ_DEFAULT_QUEUE: {
+        'HOST': os.environ.get('REDIS_HOST', 'localhost'),
         'PORT': get_int_env('REDIS_PORT', 6379),
         'DB': get_int_env('REDIS_DB', 0),
-        'PASSWORD': None,
-        'DEFAULT_TIMEOUT': 900,
+        'PASSWORD': os.environ.get('REDIS_PASSWORD'),
+        'DEFAULT_TIMEOUT': get_int_env('REDIS_TIMEOUT', 1000),
         'REDIS_CLIENT_KWARGS': {},
     },
 }
@@ -117,7 +125,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = 'app_authentication.CustomUser'
+AUTH_USER_MODEL = 'app_auth.CustomUser'
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
@@ -125,7 +133,6 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'static'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
