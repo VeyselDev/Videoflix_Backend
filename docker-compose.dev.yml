@@ -41,3 +41,6 @@ services:
       - .:/app
       - static:/app/static
       - media:/app/media
+
+networks:
+  traefik_proxy:

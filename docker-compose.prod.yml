@@ -53,3 +53,7 @@ services:
     build:
       context: .
       target: prod
+
+networks:
+  traefik_proxy:
+    external: true
