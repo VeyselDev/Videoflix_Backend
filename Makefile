@@ -1,6 +1,6 @@
 # Detect if running on Windows
 ifeq ($(OS),Windows_NT)
-	IS_WINDOWS := false
+	IS_WINDOWS := true
 else
 	IS_WINDOWS := false
 endif
@@ -11,10 +11,11 @@ YELLOW := $(if $(IS_WINDOWS),,$(shell tput setaf 3))
 RED    := $(if $(IS_WINDOWS),,$(shell tput setaf 1))
 RESET  := $(if $(IS_WINDOWS),,$(shell tput sgr0))
 
-# Environment
+# Environment settings: default and allowed values
 DEFAULT_ENV := dev
 VALID_ENVS := dev prod
 
+# Docker service names used in this project
 BACKEND_SERVICE := backend
 DB_SERVICE := postgres
 REDIS_SERVICE := redis
@@ -27,27 +28,31 @@ ifneq (,$(wildcard .env))
 	export
 endif
 
-# Fallback
+# Use DEFAULT_ENV if ENV is not already set
 ENV ?= $(DEFAULT_ENV)
 
-# Validate ENV
+# Validate that ENV is one of the allowed environments
 ifeq (,$(filter $(ENV),$(VALID_ENVS)))
 	$(error Invalid ENV '$(ENV)'. Allowed: $(VALID_ENVS))
 endif
 
-# Flags
+# Flag indicating if the current environment is development
 IS_DEV := $(if $(filter $(ENV),dev),true,false)
 
+# Compose files configuration and docker-compose command
 COMPOSE_BASE := docker-compose.base.yml
 COMPOSE_ENV  := docker-compose.$(ENV).yml
 COMPOSE_FILES := -f $(COMPOSE_BASE) -f $(COMPOSE_ENV)
 DOCKER_COMPOSE := docker compose $(COMPOSE_FILES)
 
+# Guard to ensure a target runs only in development environment
 guard-dev:
 	@[ "$(IS_DEV)" = "true" ] || { echo "$(RED)Error: This command is only available in development mode.$(RESET)"; exit 1; }
 
+# Guard to ensure a target runs only in production environment
 guard-prod:
 	@[ "$(IS_DEV)" = "false" ] || { echo "$(RED)Error: This command is only available in production mode.$(RESET)"; exit 1; }
+
 
 ############################################################
 # Help
@@ -61,7 +66,6 @@ help:
 	$(info ==========================)
 	$(info )
 	$(info Available commands:)
-	$(info )
 ifeq ($(IS_WINDOWS),true)
 	@powershell -NoProfile -ExecutionPolicy Bypass -Command \
 		"Get-Content Makefile | ForEach-Object { \
@@ -72,7 +76,6 @@ ifeq ($(IS_WINDOWS),true)
 else
 	@grep -Eh '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  ${GREEN}%-20s${RESET} %s\n", $$1, $$2}'
 endif
-	$(info )
 
 
 ############################################################
@@ -289,4 +292,3 @@ check-security: ## Run Django security checks
 
 generate-secret-key: ## Generate Django SECRET_KEY
 	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py shell -c "from django.core.management.utils import get_random_secret_key; print(f'Secret Key: {get_random_secret_key()}')"
-
