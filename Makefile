@@ -1,8 +1,15 @@
-# Colors
-GREEN  := $(shell tput -Txterm setaf 2)
-YELLOW := $(shell tput -Txterm setaf 3)
-RED	   := $(shell tput -Txterm setaf 1)
-RESET  := $(shell tput -Txterm sgr0)
+# Detect if running on Windows
+ifeq ($(OS),Windows_NT)
+	IS_WINDOWS := false
+else
+	IS_WINDOWS := false
+endif
+
+# Colors (Windows: empty, Linux/macOS: tput)
+GREEN  := $(if $(IS_WINDOWS),,$(shell tput setaf 2))
+YELLOW := $(if $(IS_WINDOWS),,$(shell tput setaf 3))
+RED    := $(if $(IS_WINDOWS),,$(shell tput setaf 1))
+RESET  := $(if $(IS_WINDOWS),,$(shell tput sgr0))
 
 # Environment
 DEFAULT_ENV := dev
@@ -14,9 +21,10 @@ REDIS_SERVICE := redis
 WORKER_SERVICE := rq_worker
 SCHEDULER_SERVICE := rq_scheduler
 
-# Read ENV from .env
+# Load environment variables from .env if the file exists
 ifneq (,$(wildcard .env))
-	ENV := $(shell grep '^ENV=' .env | cut -d '=' -f2)
+	include .env
+	export
 endif
 
 # Fallback
@@ -46,17 +54,25 @@ guard-prod:
 ############################################################
 .PHONY: help
 
-help: ## Show all available commands
-	@echo
-	@echo "$(GREEN)Videoflix_Backend Makefile$(RESET)"
-	@echo "$(GREEN)Current Environment: $(ENV)$(RESET)"
-	@echo "$(GREEN)==========================$(RESET)"
-	@echo
-	@echo '${YELLOW}Available commands:${RESET}'
-	@echo
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  ${GREEN}%-20s${RESET} %s\n", $$1, $$2}'
-	@echo
-	@echo
+help:
+	$(info )
+	$(info Videoflix_Backend Makefile)
+	$(info Current Environment: $(ENV))
+	$(info ==========================)
+	$(info )
+	$(info Available commands:)
+	$(info )
+ifeq ($(IS_WINDOWS),true)
+	@powershell -NoProfile -ExecutionPolicy Bypass -Command \
+		"Get-Content Makefile | ForEach-Object { \
+			if ($$_.ToString() -match '^(?<cmd>[a-zA-Z0-9_-]+):.*?## (?<desc>.*)') { \
+				'  {0,-22} {1}' -f $$Matches['cmd'], $$Matches['desc'] \
+			} \
+		} | Sort-Object"
+else
+	@grep -Eh '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  ${GREEN}%-20s${RESET} %s\n", $$1, $$2}'
+endif
+	$(info )
 
 
 ############################################################
