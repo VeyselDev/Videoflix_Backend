@@ -1,6 +1,6 @@
 from django.db import models
 
-from app_video.utils.upload_path_helpers import video_upload_path, thumbnail_upload_path
+from app_video.utils.upload_path import video_upload_path, thumbnail_upload_path
 
 
 class Video(models.Model):
