@@ -3,7 +3,7 @@ from typing import Dict, Any
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, PasswordField
+from rest_framework_simplejwt.serializers import PasswordField
 
 from app_auth.models import CustomUser
 from app_auth.utils.password_utils import validate_passwords_match
@@ -35,18 +35,17 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return validated_data
 
 
-class UserLoginSerializer(TokenObtainPairSerializer):
-    def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
-        validated_data = super().validate(attrs)
-        validated_data['user'] = UserSerializer(self.user).data
-        return validated_data
+class UserLoginSerializer(serializers.Serializer):
+    username_field = "email"
+    email = serializers.EmailField()
+    password = PasswordField()
 
 
 class PasswordChangeSerializer(serializers.Serializer):
     new_password = PasswordField()
-    confirmed_password = PasswordField()
+    confirm_password = PasswordField()
 
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
-        validate_passwords_match(attrs['new_password'], attrs['confirmed_password'])
+        validate_passwords_match(attrs['new_password'], attrs['confirm_password'])
         validate_password(attrs['new_password'])
         return attrs
