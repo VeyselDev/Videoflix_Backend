@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -8,7 +9,8 @@ from app_auth.api.serializers import UserRegistrationSerializer, PasswordChangeS
 from app_auth.models import CustomUser
 
 from app_auth.services.auth_service import invalidate_refresh_token, REFRESH_COOKIE_NAME, login_user, refresh_tokens, \
-    build_user_activation_link, set_auth_cookies, clear_auth_cookies, validate_user_token_or_fail
+    build_user_activation_link, set_auth_cookies, clear_auth_cookies, validate_user_token_or_fail, \
+    build_password_reset_link
 from app_auth.services.email_service import send_password_reset_email, send_user_activation_email
 from app_auth.services.user_service import create_user, activate_user, get_user_from_uid_or_fail
 from app_auth.utils.queue_utils import enqueue_job
@@ -17,12 +19,12 @@ from app_auth.utils.queue_utils import enqueue_job
 class UserRegistrationView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request) -> Response:
+    def post(self, request: Request) -> Response:
         serializer = UserRegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         user = create_user(**serializer.validated_data)
-        activation_link = build_user_activation_link(request, user)
+        activation_link = build_user_activation_link(user)
         enqueue_job(send_user_activation_email, user, activation_link)
         user_serializer = UserSerializer(user)
 
@@ -32,7 +34,7 @@ class UserRegistrationView(APIView):
 class UserActivationView(APIView):
     permission_classes = [AllowAny]
 
-    def get(self, request, uidb64, token):
+    def get(self, request: Request, uidb64: str, token: str) -> Response:
         try:
             user = get_user_from_uid_or_fail(uidb64)
             validate_user_token_or_fail(user, token)
@@ -52,7 +54,7 @@ class UserActivationView(APIView):
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: Request) -> Response:
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -66,7 +68,7 @@ class UserLoginView(APIView):
 class UserLogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         refresh_token = request.COOKIES.get(REFRESH_COOKIE_NAME)
         invalidate_refresh_token(refresh_token)
         response = Response({'detail': 'Logout successful'}, status=status.HTTP_200_OK)
@@ -77,7 +79,7 @@ class UserLogoutView(APIView):
 class TokenRefreshView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         refresh_token = request.COOKIES.get(REFRESH_COOKIE_NAME)
         access, refresh = refresh_tokens(refresh_token)
 
@@ -89,18 +91,19 @@ class TokenRefreshView(APIView):
 class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         email = request.data.get('email')
         user = CustomUser.objects.filter(email=email, is_active=True).first()
         if user:
-            enqueue_job(send_password_reset_email, request, user)
+            reset_link = build_password_reset_link(user)
+            enqueue_job(send_password_reset_email, user.id, reset_link)
         return Response({'detail': 'If an account exists, a reset email has been sent.'}, status=status.HTTP_200_OK)
 
 
 class PasswordChangeView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request, uidb64, token):
+    def post(self, request: Request, uidb64: str, token: str) -> Response:
         serializer = PasswordChangeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
