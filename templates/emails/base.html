@@ -56,6 +56,8 @@
   </head>
   <body>
     {% block content %}{% endblock %}
-    <img src="{{ settings.FRONTEND_BASE_URL }}/assets/icons/logo_icon.svg" alt="Videoflix" class="logo">
+    <a href="{{ settings.FRONTEND_BASE_URL }}" aria-label="Go to homepage">
+      <img src="{{ settings.FRONTEND_BASE_URL }}/logo.svg" alt="Videoflix logo" class="logo">
+    </a>
   </body>
 </html>
