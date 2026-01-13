@@ -1,52 +1,46 @@
+from typing import Optional, Dict
+
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from premailer import transform
 
-from app_auth.services.user_service import get_user_from_id_or_fail
+from app_auth.services.user_service import get_user_or_fail
 
 
-def send_user_activation_email(user, activation_link):
-    """
-    Send account activation email to the specified user.
-    """
-    template_activation_email = 'emails/confirm_email.html'
+EMAIL_CONFIG: Dict[str, Dict[str, str]] = {
+    "user_activation": {
+        "template": "emails/confirm_email.html",
+        "subject": "Confirm your email",
+        "plain_text": "Please activate your account by clicking the link.",
+    },
+    "password_reset": {
+        "template": "emails/reset_password.html",
+        "subject": "Password reset",
+        "plain_text": "Click the link to reset your password.",
+    },
+}
 
-    html_raw = render_to_string(template_activation_email, {
-        'user': user,
-        'activation_link': activation_link,
-    })
+EMAIL_LINK_PATHS = {
+    'user_activation': settings.FRONTEND_USER_ACTIVATION_PATH,
+    'password_reset': settings.FRONTEND_PASSWORD_RESET_PATH,
+}
 
+
+def send_email(email_type: str, user_id: int, link: Optional[str] = None, context: Optional[dict] = None) -> None:
+    user = get_user_or_fail(user_id=user_id)
+    context = context or {}
+    context.setdefault("user", user)
+    context["link"] = link
+
+    config = EMAIL_CONFIG[email_type]
+
+    html_raw = render_to_string(config["template"], context)
     html_message = transform(html_raw)
 
     send_mail(
-        subject='Confirm your email',
-        message='Please activate your account by clicking the link.',
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-        html_message=html_message,
-        fail_silently=False,
-    )
-
-
-def send_password_reset_email(user_id: int, reset_link):
-    """
-    Send password reset email.
-    """
-    user = get_user_from_id_or_fail(user_id)
-    template_password_reset_email = 'emails/reset_password.html'
-
-
-    html_raw = render_to_string(template_password_reset_email, {
-        'user': user,
-        'reset_link': reset_link,
-    })
-
-    html_message = transform(html_raw)
-
-    send_mail(
-        subject='Password reset',
-        message='Click the link to reset your password.',
+        subject=config["subject"],
+        message=config["plain_text"],
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
         html_message=html_message,

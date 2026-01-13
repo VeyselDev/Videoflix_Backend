@@ -8,7 +8,10 @@ from core.utils.env_helpers import get_int_env, get_bool_env
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
+
 FRONTEND_BASE_URL = os.environ.get('FRONTEND_BASE_URL')
+FRONTEND_USER_ACTIVATION_PATH = os.environ.get('FRONTEND_USER_ACTIVATION_PATH')
+FRONTEND_PASSWORD_RESET_PATH = os.environ.get('FRONTEND_PASSWORD_RESET_PATH')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
