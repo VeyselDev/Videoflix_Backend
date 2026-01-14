@@ -75,7 +75,6 @@ def send_email(email_type_str: str, user_id: int, extra_context: Optional[dict] 
     schema = EMAIL_SCHEMAS[email_type]
 
     context = build_email_context(user, schema, extra_context)
-    print("EMAIL CONTEXT:", context)
     html_message = transform(render_to_string(schema.template, context))
 
     mail_sender(
