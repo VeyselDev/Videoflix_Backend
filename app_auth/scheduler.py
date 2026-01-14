@@ -5,7 +5,7 @@ from django.conf import settings
 from app_auth.tasks import delete_inactive_users
 
 
-def schedule_delete_inactive_users():
+def schedule_delete_inactive_users() -> None:
     """
     Schedule a job to delete inactive users every hour.
     Ensures no duplicate jobs are scheduled.

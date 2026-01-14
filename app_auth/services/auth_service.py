@@ -1,6 +1,5 @@
 import logging
 from typing import cast, Tuple, Dict, Optional
-from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -12,8 +11,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from app_auth.models import CustomUser
-from app_auth.services.email_service import EMAIL_LINK_PATHS
-from app_auth.utils.encoding_utils import encode_int_to_b64
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +20,7 @@ REFRESH_TOKEN_KEY = 'refresh'
 
 ACCESS_COOKIE_NAME = 'access_token'
 REFRESH_COOKIE_NAME = 'refresh_token'
+
 
 def login_user(email: str, password: str) -> Tuple[str, str, CustomUser]:
     user = authenticate(email=email, password=password)
@@ -80,18 +79,6 @@ def clear_auth_cookies(response: Response) -> Response:
     response.delete_cookie(ACCESS_COOKIE_NAME)
     response.delete_cookie(REFRESH_COOKIE_NAME)
     return response
-
-
-def _build_user_token_link(user: CustomUser, path: str) -> str:
-    uidb64 = encode_int_to_b64(user.pk)
-    token = default_token_generator.make_token(user)
-    query = urlencode({'uidb64': uidb64, 'token': token})
-    return f'{settings.FRONTEND_BASE_URL}/{path}?{query}'
-
-
-def build_user_link(user: CustomUser, link_type: str) -> str:
-    path = EMAIL_LINK_PATHS[link_type]
-    return _build_user_token_link(user, path)
 
 
 def is_user_token_valid(user: CustomUser, token: str) -> bool:

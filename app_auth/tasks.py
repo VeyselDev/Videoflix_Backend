@@ -5,7 +5,7 @@ from django.utils import timezone
 from app_auth.models import CustomUser
 
 
-def delete_inactive_users(inactivity_days: int = 1):
+def delete_inactive_users(inactivity_days: int = 1) -> str:
     """
     Delete all users who have not activated their account within a
     defined inactivity period.

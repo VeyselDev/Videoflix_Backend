@@ -16,10 +16,10 @@ def activate_user(user: CustomUser) -> None:
     user.save(update_fields=['is_active'])
 
 
-def get_user_or_fail(uidb64: Optional[str] = None, user_id: Optional[int] = None) -> CustomUser:
-    user_pk = user_id or (decode_b64_to_int(uidb64) if uidb64 else None)
+def get_user_or_fail(uidb64: Optional[str] = None, pk: Optional[int] = None) -> CustomUser:
+    user_id = pk or (decode_b64_to_int(uidb64) if uidb64 else None)
 
-    if not user_pk:
+    if not user_id:
         raise ValueError("Either uidb64 or user_id must be provided")
 
-    return get_object_or_404(CustomUser, pk=user_pk)
+    return get_object_or_404(CustomUser, pk=user_id)

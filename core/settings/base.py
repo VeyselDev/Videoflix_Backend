@@ -12,6 +12,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 FRONTEND_BASE_URL = os.environ.get('FRONTEND_BASE_URL')
 FRONTEND_USER_ACTIVATION_PATH = os.environ.get('FRONTEND_USER_ACTIVATION_PATH')
 FRONTEND_PASSWORD_RESET_PATH = os.environ.get('FRONTEND_PASSWORD_RESET_PATH')
+FRONTEND_LOGO_FILE_NAME = os.environ.get('FRONTEND_LOGO_FILE_NAME')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -138,6 +139,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 24
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST')

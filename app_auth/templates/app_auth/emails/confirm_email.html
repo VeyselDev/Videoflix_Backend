@@ -1,0 +1,12 @@
+{% extends "app_auth/emails/base.html" %}
+{% block title %}Confirm your email{% endblock %}
+
+{% block email_body %}
+  <p>Thank you for registering with <span class="accent">Videoflix</span>. To complete your registration and verify your email address, please click the link below:</p>
+{% endblock %}
+
+{% block button_text %}Activate Account{% endblock %}
+
+{% block extra_info %}
+  <p>If you did not create an account, please ignore this email.</p>
+{% endblock %}
