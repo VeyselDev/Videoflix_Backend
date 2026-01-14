@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import liveness
+
+from app_health_check.views import LivenessView
 
 urlpatterns = [
-    path("health/", liveness)
+    path("health/", LivenessView.as_view(), name="health"),
 ]

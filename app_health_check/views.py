@@ -1,5 +1,6 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpRequest
+from django.views import View
 
-
-def liveness(request):
-    return JsonResponse({"status": "ok"})
+class LivenessView(View):
+    def get(self, request: HttpRequest) -> JsonResponse:
+        return JsonResponse({"status": "ok"})
