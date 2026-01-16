@@ -11,7 +11,7 @@ from app_auth.models import CustomUser
 from app_auth.services.auth_service import revoke_refresh_token, REFRESH_COOKIE_NAME, login_user, renew_tokens, set_auth_cookies, clear_auth_cookies, validate_user_or_fail
 from app_auth.services.email_service import send_email, EmailType
 from app_auth.services.user_service import create_user, activate_user, get_user_or_fail
-from app_auth.utils.queue_utils import enqueue_job
+from core.utils.queue_utils import enqueue_job
 
 
 class UserRegistrationView(APIView):
