@@ -6,12 +6,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from app_auth.api.serializers import UserRegistrationSerializer, PasswordChangeSerializer, UserLoginSerializer, UserSerializer
-from app_auth.models import CustomUser
 
-from app_auth.services.auth_service import revoke_refresh_token, REFRESH_COOKIE_NAME, login_user, renew_tokens, set_auth_cookies, clear_auth_cookies, validate_user_or_fail
-from app_auth.services.email_service import send_email, EmailType
-from app_auth.services.user_service import create_user, activate_user, get_user_or_fail
-from core.utils.queue_utils import enqueue_job
+from app_auth.services.auth_service import revoke_refresh_token, login_user, renew_tokens, \
+    set_auth_cookies, clear_auth_cookies, validate_user_or_fail, AuthCookie
+from app_auth.services.email_service import EmailType, enqueue_email
+from app_auth.services.user_service import create_user, activate_user, get_user_or_404
 
 
 class UserRegistrationView(APIView):
@@ -22,7 +21,7 @@ class UserRegistrationView(APIView):
         serializer.is_valid(raise_exception=True)
 
         user = create_user(**serializer.validated_data)
-        enqueue_job(send_email, EmailType.USER_ACTIVATION.value, user.pk)
+        enqueue_email(email_type=EmailType.USER_ACTIVATION, user_id=user.pk)
         user_serializer = UserSerializer(user)
 
         return Response(user_serializer.data, status=status.HTTP_201_CREATED)
@@ -33,7 +32,7 @@ class UserActivationView(APIView):
 
     def get(self, request: Request, uidb64: str, token: str) -> Response:
         try:
-            user = get_user_or_fail(uidb64=uidb64)
+            user = get_user_or_404(uidb64=uidb64)
             validate_user_or_fail(user, token)
             activate_user(user)
             return Response(
@@ -66,7 +65,7 @@ class UserLogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request: Request) -> Response:
-        refresh_token = request.COOKIES.get(REFRESH_COOKIE_NAME)
+        refresh_token = request.COOKIES.get(AuthCookie.REFRESH)
         revoke_refresh_token(refresh_token)
         response = Response({'detail': 'Logout successful'}, status=status.HTTP_200_OK)
         clear_auth_cookies(response)
@@ -77,7 +76,7 @@ class TokenRefreshView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request: Request) -> Response:
-        refresh_token = request.COOKIES.get(REFRESH_COOKIE_NAME)
+        refresh_token = request.COOKIES.get(AuthCookie.REFRESH)
         access, refresh = renew_tokens(refresh_token)
 
         response = Response({"detail": "Token refreshed"}, status=status.HTTP_200_OK)
@@ -90,9 +89,8 @@ class PasswordResetView(APIView):
 
     def post(self, request: Request) -> Response:
         email = request.data.get('email')
-        user = CustomUser.objects.filter(email=email, is_active=True).first()
-        if user:
-            enqueue_job(send_email, EmailType.PASSWORD_RESET.value, user.pk)
+        user = get_user_or_404(email=email, is_active=True)
+        enqueue_email(email_type=EmailType.PASSWORD_RESET, user_id=user.pk)
         return Response({'detail': 'If an account exists, a reset email has been sent.'}, status=status.HTTP_200_OK)
 
 
@@ -103,7 +101,7 @@ class PasswordChangeView(APIView):
         serializer = PasswordChangeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user = get_user_or_fail(uidb64=uidb64)
+        user = get_user_or_404(uidb64=uidb64)
         validate_user_or_fail(user, token)
         user.set_password(serializer.validated_data['new_password'])
         user.save()
