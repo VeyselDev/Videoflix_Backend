@@ -6,12 +6,12 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.tokens import Token
 
 from app_auth.models import CustomUser
-from app_auth.services.auth_service import ACCESS_COOKIE_NAME
+from app_auth.services.auth_service import AuthCookie
 
 
 class CookieJWTAuthentication(JWTAuthentication):
     def authenticate(self, request: Request) -> Optional[Tuple[CustomUser, Token]]:
-        raw_token = request.COOKIES.get(ACCESS_COOKIE_NAME)
+        raw_token = request.COOKIES.get(AuthCookie.ACCESS)
 
         if not raw_token:
             return None
