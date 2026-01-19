@@ -1,8 +1,10 @@
 # Detect if running on Windows
 ifeq ($(OS),Windows_NT)
 	IS_WINDOWS := true
+	CONFIRM_CMD := powershell -Command "$$val = Read-Host 'Continue? (y/n)'; if ($$val -ne 'y') { exit 1 }"
 else
 	IS_WINDOWS := false
+	CONFIRM_CMD := printf "Continue? (y/n): " && read confirm && [ "$$confirm" = "y" ]
 endif
 
 # Colors (Windows: empty, Linux/macOS: tput)
@@ -47,12 +49,15 @@ DOCKER_COMPOSE := docker compose $(COMPOSE_FILES)
 
 # Guard to ensure a target runs only in development environment
 guard-dev:
-	@[ "$(IS_DEV)" = "true" ] || { echo "$(RED)Error: This command is only available in development mode.$(RESET)"; exit 1; }
+ifneq ($(IS_DEV),true)
+	$(error $(RED)Error: This command is only available in development mode (ENV=dev)$(RESET))
+endif
 
 # Guard to ensure a target runs only in production environment
 guard-prod:
-	@[ "$(IS_DEV)" = "false" ] || { echo "$(RED)Error: This command is only available in production mode.$(RESET)"; exit 1; }
-
+ifeq ($(IS_DEV),true)
+	$(error $(RED)Error: This command is only available in production mode (ENV=prod)$(RESET))
+endif
 
 ############################################################
 # Help
@@ -160,7 +165,7 @@ deploy: guard-prod ## Deploy (PROD only)
 
 clean: ## Remove all containers, volumes, networks and unused images
 	@echo "$(YELLOW)This will remove all containers, volumes, networks and unused images!$(RESET)"
-	@read -p "Continue? (y/n): " confirm && [ $$confirm = "y" ]
+	@$(CONFIRM_CMD)
 	@echo "$(GREEN)Cleaning system...$(RESET)"
 	$(DOCKER_COMPOSE) down -v --remove-orphans
 	docker system prune -f
@@ -219,18 +224,18 @@ shell-django: ## Open Django shell inside backend container
 
 makemigrations: guard-dev ## Create new migrations (DEV only)
 	@echo "$(GREEN)Creating migrations...$(RESET)"
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py makemigrations
+	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) python manage.py makemigrations
 
 migrate: ## Apply database migrations
 	@echo "$(GREEN)Running migrations...$(RESET)"
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py migrate
+	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) python manage.py migrate
 
 collectstatic: ## Collect static files
 	@echo "$(GREEN)Collecting static files...$(RESET)"
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py collectstatic --noinput
+	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) python manage.py collectstatic --noinput
 
 createsuperuser: ## Create superuser
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py createsuperuser
+	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) python manage.py createsuperuser
 
 
 ############################################################
@@ -240,8 +245,8 @@ createsuperuser: ## Create superuser
 
 db-reset: guard-dev ## Reset database (DEV only)
 	@echo "$(RED)WARNING: This will delete ALL database data.$(RESET)"
-	@read -p "Continue? (y/n): " confirm && [ $$confirm = "y" ]
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py flush --noinput
+	@$(CONFIRM_CMD)
+	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) python manage.py flush --noinput
 	@echo "$(GREEN)Database reset completed.$(RESET)"
 
 
@@ -252,12 +257,11 @@ db-reset: guard-dev ## Reset database (DEV only)
 
 test: guard-dev ## Run Django tests (DEV only)
 	@echo "$(GREEN)Running tests...$(RESET)"
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py test
+	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) python manage.py test
 
 test-coverage: guard-dev ## Run tests with coverage (DEV only)
 	@echo "$(GREEN)Running tests with coverage...$(RESET)"
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) coverage run --source='.' manage.py test
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) coverage report
+	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) sh -c "coverage run --source='.' manage.py test && coverage report"
 
 
 ############################################################
@@ -288,7 +292,7 @@ ps-detailed: ## Show all containers (including stopped)
 .PHONY: check-security generate-secret-key
 
 check-security: ## Run Django security checks
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py check --deploy
+	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) python manage.py check --deploy
 
 generate-secret-key: ## Generate Django SECRET_KEY
 	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py shell -c "from django.core.management.utils import get_random_secret_key; print(f'Secret Key: {get_random_secret_key()}')"
