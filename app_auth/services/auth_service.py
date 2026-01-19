@@ -1,4 +1,5 @@
 import logging
+from enum import Enum
 from typing import cast, Tuple, Dict, Optional
 
 from django.conf import settings
@@ -15,11 +16,10 @@ from app_auth.models import CustomUser
 
 logger = logging.getLogger(__name__)
 
-ACCESS_TOKEN_KEY = 'access'
-REFRESH_TOKEN_KEY = 'refresh'
 
-ACCESS_COOKIE_NAME = 'access_token'
-REFRESH_COOKIE_NAME = 'refresh_token'
+class AuthCookie(str, Enum):
+    ACCESS = 'access_token'
+    REFRESH = 'refresh_token'
 
 
 def login_user(email: str, password: str) -> Tuple[str, str, CustomUser]:
@@ -69,15 +69,15 @@ def _get_cookie_kwargs() -> Dict[str, any]:
 
 def set_auth_cookies(response: Response, access: str, refresh: Optional[str] = None) -> Response:
     kwargs = _get_cookie_kwargs()
-    response.set_cookie(ACCESS_COOKIE_NAME, access, **kwargs)
+    response.set_cookie(AuthCookie.ACCESS, access, **kwargs)
     if refresh:
-        response.set_cookie(REFRESH_COOKIE_NAME, refresh, **kwargs)
+        response.set_cookie(AuthCookie.REFRESH, refresh, **kwargs)
     return response
 
 
 def clear_auth_cookies(response: Response) -> Response:
-    response.delete_cookie(ACCESS_COOKIE_NAME)
-    response.delete_cookie(REFRESH_COOKIE_NAME)
+    response.delete_cookie(AuthCookie.ACCESS)
+    response.delete_cookie(AuthCookie.REFRESH)
     return response
 
 
