@@ -56,7 +56,7 @@ class Command(BaseCommand):
             )
 
             with video_path.open("rb") as v_file, thumbnail_path.open("rb") as t_file:
-                video.video_file.save(video_path.name, File(v_file), save=False)
+                video.file.save(video_path.name, File(v_file), save=False)
                 video.thumbnail.save(thumbnail_path.name, File(t_file), save=False)
 
             video.save()

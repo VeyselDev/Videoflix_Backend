@@ -1,31 +1,23 @@
-import os
-import shutil
-
-import django_rq
+import logging
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from app_video.models import Video
+from app_video.services.video_service import VideoService
 from app_video.tasks import convert_video_to_hls
+from core.utils.queue_utils import enqueue_job
 
+logger: logging.Logger = logging.getLogger(__name__)
+video_service: VideoService = VideoService()
 
 @receiver(post_save, sender=Video)
-def auto_process_video_on_save(sender, instance, created, **kwargs):
-    if created and instance.video_file:
-        queue = django_rq.get_queue('default', autocommit=True)
-        job = queue.enqueue(convert_video_to_hls, instance.id)
-        instance.rq_job_id = job.id
-        instance.save()
+def video_created(sender: type[Video], instance: Video, created: bool, **kwargs: any) -> None:
+    if created:
+        logger.info("Signal video_created triggered for id %s", instance.pk)
+        enqueue_job(convert_video_to_hls, instance.pk)
 
 
 @receiver(post_delete, sender=Video)
-def auto_delete_file_on_delete(sender, instance, **kwargs):
-    if instance.video_file:
-        main_dir = os.path.dirname(instance.video_file.path)
-        if os.path.exists(main_dir):
-            shutil.rmtree(main_dir, ignore_errors=True)
-
-    if instance.thumbnail:
-        thumb_dir = os.path.dirname(instance.thumbnail.path)
-        if os.path.exists(thumb_dir):
-            shutil.rmtree(thumb_dir, ignore_errors=True)
+def video_deleted(sender: type[Video], instance: Video, **kwargs: any) -> None:
+    logger.info("Signal video_deleted triggered for id %s", instance.pk)
+    video_service.delete_video_files(instance)
