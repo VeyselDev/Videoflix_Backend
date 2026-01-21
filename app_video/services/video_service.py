@@ -49,12 +49,18 @@ class VideoService:
 
         if not file_path_exists(video.file.path):
             logger.error(f'File missing: {video.file.path}')
+            self.update_video_status(video.pk, VideoStatus.FAILED)
             return
 
         video_dir: str = get_file_dir(video.file.path)
 
-        for resolution_label, resolution_size in VIDEO_RESOLUTIONS.items():
-            self._convert_video_to_hls_resolution(video.file.path, video_dir, resolution_label, resolution_size)
+        try:
+            for resolution_label, resolution_size in VIDEO_RESOLUTIONS.items():
+                self._convert_video_to_hls_resolution(video.file.path, video_dir, resolution_label, resolution_size)
+        except Exception as e:
+            logger.exception(f'Error converting video {video.pk}: {e}')
+            self.update_video_status(video.pk, VideoStatus.FAILED)
+            return
 
         self.update_video_status(video.pk, VideoStatus.CONVERTED)
 
@@ -88,8 +94,12 @@ class VideoService:
             manifest_path=Path(hls_dir) / 'index.m3u8',
         )
 
-        run_hls_conversion(config)
-        logger.info(f'HLS {resolution_label} created for {video_file_path}')
+        try:
+            run_hls_conversion(config)
+            logger.info(f'HLS {resolution_label} created for {video_file_path}')
+        except Exception as e:
+            logger.error(f'Failed HLS {resolution_label} for {video_file_path}: {e}')
+            raise
 
 
     def get_hls_dir(self, video_dir: str, resolution: str) -> str:
