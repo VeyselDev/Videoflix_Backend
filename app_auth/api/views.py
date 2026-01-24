@@ -6,11 +6,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from app_auth.api.serializers import UserRegistrationSerializer, PasswordChangeSerializer, UserLoginSerializer, UserSerializer
+from app_auth.services.auth_service import validate_user_or_fail, login_user, revoke_refresh_token, renew_tokens, \
+    get_cookie_kwargs, AuthCookie
 
-from app_auth.services.auth_service import revoke_refresh_token, login_user, renew_tokens, \
-    set_auth_cookies, clear_auth_cookies, validate_user_or_fail, AuthCookie
 from app_auth.services.email_service import EmailType, enqueue_email
-from app_auth.services.user_service import create_user, activate_user, get_user_or_404
+from app_auth.services.user_service import create_user, get_user_or_404, activate_user
 
 
 class UserRegistrationView(APIView):
@@ -55,8 +55,10 @@ class UserLoginView(APIView):
         serializer.is_valid(raise_exception=True)
 
         access, refresh, user = login_user(serializer.validated_data["email"], serializer.validated_data["password"])
+        cookie_kwargs = get_cookie_kwargs()
         response = Response({ "detail": "Login successful", "user": UserSerializer(user).data }, status=status.HTTP_200_OK)
-        set_auth_cookies(response, access, refresh)
+        response.set_cookie(AuthCookie.ACCESS, access, **cookie_kwargs)
+        response.set_cookie(AuthCookie.REFRESH, refresh, **cookie_kwargs)
 
         return response
 
@@ -68,7 +70,8 @@ class UserLogoutView(APIView):
         refresh_token = request.COOKIES.get(AuthCookie.REFRESH)
         revoke_refresh_token(refresh_token)
         response = Response({'detail': 'Logout successful'}, status=status.HTTP_200_OK)
-        clear_auth_cookies(response)
+        response.delete_cookie(AuthCookie.ACCESS)
+        response.delete_cookie(AuthCookie.REFRESH)
         return response
 
 
@@ -80,7 +83,8 @@ class TokenRefreshView(APIView):
         access, refresh = renew_tokens(refresh_token)
 
         response = Response({"detail": "Token refreshed"}, status=status.HTTP_200_OK)
-        set_auth_cookies(response, access, refresh)
+        response.set_cookie(AuthCookie.ACCESS, access, **get_cookie_kwargs())
+        response.set_cookie(AuthCookie.REFRESH, refresh, **get_cookie_kwargs())
         return response
 
 
