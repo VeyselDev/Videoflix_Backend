@@ -65,7 +65,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - DJANGO_SETTINGS_MODULE=core.settings.settings
-    command: python manage.py rqworker default
+    command: sh -c "python manage.py rqworker ${DEFAULT_QUEUE}"
     volumes:
       - static:/app/static
       - media:/app/media
