@@ -1,5 +1,7 @@
+from datetime import timedelta
 from typing import Optional
 
+from django.utils import timezone
 from rest_framework.generics import get_object_or_404
 
 from app_auth.models import CustomUser
@@ -32,9 +34,19 @@ def get_user_or_404(
     elif email:
         filters["email"] = email
     else:
-        return get_object_or_404(CustomUser, pk=None)  # erzwingt 404
+        return get_object_or_404(CustomUser, pk=None)
 
     if is_active is not None:
         filters["is_active"] = is_active
 
     return get_object_or_404(CustomUser, **filters)
+
+
+def delete_inactive_users_older_than(hours: int) -> int:
+    cutoff = timezone.now() - timedelta(hours=hours)
+    deleted_count, _ = (
+        CustomUser.objects
+        .filter(is_active=False, created_at__lte=cutoff)
+        .delete()
+    )
+    return deleted_count
