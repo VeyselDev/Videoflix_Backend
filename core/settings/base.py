@@ -101,10 +101,10 @@ CACHES = {
 }
 
 
-RQ_DEFAULT_QUEUE = os.environ.get('RQ_DEFAULT_QUEUE', 'default')
+DEFAULT_QUEUE = os.environ.get('DEFAULT_QUEUE', 'default')
 
 RQ_QUEUES = {
-    RQ_DEFAULT_QUEUE: {
+    DEFAULT_QUEUE: {
         'HOST': os.environ.get('REDIS_HOST', 'localhost'),
         'PORT': get_int_env('REDIS_PORT', 6379),
         'DB': get_int_env('REDIS_DB', 0),
@@ -139,8 +139,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
-PASSWORD_RESET_TIMEOUT = 60 * 60 * 24
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST')
