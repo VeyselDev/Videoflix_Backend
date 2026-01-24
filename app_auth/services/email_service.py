@@ -8,6 +8,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from premailer import transform
+from rq.job import Job
 
 from app_auth.models import CustomUser
 from app_auth.services.user_service import get_user_or_404
@@ -38,8 +39,8 @@ EMAIL_SCHEMAS: dict[EmailType, EmailSchema] = {
             "Thank you for registering with Videoflix. To complete your registration and verify your email address, "
             "please click the link below:\n\n"
             "{url}\n\n"
-            "Please note that this link will expire in 24 hours.\n\n"
-            "If you did not create an account, please ignore this email.\n\n"
+            "Note that this link will expire in 24 hours.\n\n"
+            "If you did not create an account, you can ignore this email.\n\n"
             "Best regards,\n"
             "Your Videoflix Team"
         ),
@@ -53,8 +54,8 @@ EMAIL_SCHEMAS: dict[EmailType, EmailSchema] = {
             "We recently received a request to reset your password. If you made this request, "
             "please click on the following link to reset your password:\n\n"
             "{url}\n\n"
-            "Please note that this link will expire in 24 hours.\n\n"
-            "If you did not request a password reset, please ignore this email.\n\n"
+            "Note that this link will expire in 24 hours.\n\n"
+            "If you did not request a password reset, you can ignore this email.\n\n"
             "Best regards,\n"
             "Your Videoflix Team"
         ),
@@ -96,8 +97,8 @@ def build_email_message(email_type: EmailType, user: CustomUser, extra_context: 
     return schema.subject, message, html_message
 
 
-def enqueue_email(*, email_type: EmailType, user_id: int) -> None:
-    enqueue_job(_process_email_job, email_type.value, user_id)
+def enqueue_email(*, email_type: EmailType, user_id: int) -> Job:
+    return enqueue_job(_process_email_job, email_type.value, user_id)
 
 
 def _render_html_body(template_name: str, context: dict) -> str:
