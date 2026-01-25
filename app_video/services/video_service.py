@@ -45,21 +45,26 @@ def update_video_status(video_id: int, status: VideoStatus) -> None:
 
 def convert_video_to_hls(video_id: int) -> None:
     video: Video = get_video_or_404(video_id)
+    update_video_status(video.pk, VideoStatus.PROCESSING)
 
     if not file_path_exists(video.file.path):
-        logger.error(f'File missing: {video.file.path}')
+        logger.error("File missing: %s", video.file.path)
         update_video_status(video.pk, VideoStatus.FAILED)
-        return
-
-    video_dir: str = get_file_dir(video.file.path)
+        raise FileNotFoundError(f"File missing: {video.file.path}")
 
     try:
-        for resolution_label, resolution_size in VIDEO_RESOLUTIONS.items():
-            _convert_video_to_hls_resolution(video.file.path, video_dir, resolution_label, resolution_size)
+        video_dir: str = get_file_dir(video.file.path)
+        for label, size in VIDEO_RESOLUTIONS.items():
+            _convert_video_to_hls_resolution(
+                video.file.path,
+                video_dir,
+                label,
+                size,
+            )
     except Exception as e:
-        logger.exception(f'Error converting video {video.pk}: {e}')
+        logger.exception("Error converting video %s", video.pk)
         update_video_status(video.pk, VideoStatus.FAILED)
-        return
+        raise e
 
     update_video_status(video.pk, VideoStatus.CONVERTED)
 

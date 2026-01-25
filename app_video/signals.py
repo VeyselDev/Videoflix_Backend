@@ -13,7 +13,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 def video_created(sender: type[Video], instance: Video, created: bool, **kwargs: any) -> None:
     if created:
         logger.info("Signal video_created triggered for id %s", instance.pk)
-        enqueue_job(convert_video_to_hls_job, instance.pk)
+        enqueue_job(convert_video_to_hls_job, instance.pk, timeout=1000)
 
 
 @receiver(post_delete, sender=Video)
