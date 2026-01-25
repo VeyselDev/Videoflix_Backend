@@ -7,13 +7,19 @@ from rq import Retry
 from rq.job import Job
 
 
-def enqueue_job(func: Callable[..., any], *args: any, **kwargs: any) -> Job:
+def enqueue_job(
+    func: Callable[..., any],
+    *args: any,
+    timeout: int = 120,
+    retry: int = 3,
+    **kwargs: any
+) -> Job:
     queue = get_queue(settings.DEFAULT_QUEUE)
 
     return queue.enqueue(
         func,
         *args,
         **kwargs,
-        retry=Retry(max=3),
-        job_timeout=120
+        retry=Retry(max=retry),
+        job_timeout=timeout,
     )
