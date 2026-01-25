@@ -7,17 +7,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from app_video.api.serializers import VideoListSerializer
-from app_video.services.video_service import VideoService
 from app_video.models import Video
-
-video_service: VideoService = VideoService()
+from app_video.services.video_service import get_hls_converted_videos, get_video_or_404, get_hls_file_path_or_404
 
 
 class VideoListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        converted_videos: list[Video] = video_service.get_hls_converted_videos()
+        converted_videos: list[Video] = get_hls_converted_videos()
         serializer: VideoListSerializer = VideoListSerializer(
             converted_videos, many=True, context={'request': request}
         )
@@ -28,8 +26,8 @@ class HLSManifestView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, movie_id: int, resolution: str, *args: Any, **kwargs: Any) -> FileResponse:
-        video: Video = video_service.get_video_or_404(movie_id)
-        manifest_file_path: str = video_service.get_hls_file_path_or_404(video, resolution, 'index.m3u8')
+        video: Video = get_video_or_404(movie_id)
+        manifest_file_path: str = get_hls_file_path_or_404(video, resolution, 'index.m3u8')
         return FileResponse(open(manifest_file_path, 'rb'), content_type='application/vnd.apple.mpegurl')
 
 
@@ -37,6 +35,6 @@ class HLSSegmentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, movie_id: int, resolution: str, segment: str, *args: Any, **kwargs: Any) -> FileResponse:
-        video: Video = video_service.get_video_or_404(movie_id)
-        segment_file_path: str = video_service.get_hls_file_path_or_404(video, resolution, segment)
+        video: Video = get_video_or_404(movie_id)
+        segment_file_path: str = get_hls_file_path_or_404(video, resolution, segment)
         return FileResponse(open(segment_file_path, 'rb'), content_type='video/MP2T')
