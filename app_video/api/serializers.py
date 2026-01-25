@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.request import Request
 
 from app_video.models import Video
-from app_video.utils.path_utils import get_file_url
+from core.utils.path_utils import get_file_url
 
 
 class VideoListSerializer(serializers.ModelSerializer):

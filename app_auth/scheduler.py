@@ -1,5 +1,5 @@
 from app_auth.jobs import delete_inactive_users_job
-from app_auth.services.scheduler_service import schedule_job_if_not_exists
+from core.services.scheduler_service import schedule_job_if_not_exists
 
 
 def register_recurring_jobs() -> None:
