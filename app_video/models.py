@@ -1,6 +1,6 @@
 from django.db import models
 
-from app_video.services.video_service import get_media_upload_path
+from app_video.utils.upload_utils import get_slugged_file_path
 
 
 class VideoCategory(models.TextChoices):
@@ -22,8 +22,8 @@ class Video(models.Model):
     title = models.CharField(max_length=255, unique=True)
     description = models.TextField()
     category = models.CharField(max_length=32, choices=VideoCategory.choices, db_index=True)
-    file = models.FileField(upload_to=get_media_upload_path)
-    thumbnail = models.ImageField(upload_to=get_media_upload_path)
+    file = models.FileField(upload_to=get_slugged_file_path)
+    thumbnail = models.ImageField(upload_to=get_slugged_file_path)
     status = models.CharField(max_length=16, choices=VideoStatus.choices, default=VideoStatus.PENDING, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
