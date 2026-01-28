@@ -3,7 +3,7 @@ import os, sys
 
 load_dotenv()
 
-ENV = os.environ.get('ENV')
+ENV = os.environ.get('ENV').lower()
 
 if ENV == 'dev':
     from core.settings.dev import *
