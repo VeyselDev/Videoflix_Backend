@@ -30,7 +30,7 @@ def log_debug(message: str, *args: Any, **kwargs: Any) -> None:
 def log_info(message: str, *args: Any, **kwargs: Any) -> None:
     logger.info(message, *args, **kwargs)
 
-def log_warn(message: str, *args: Any, **kwargs: Any) -> None:
+def log_warning(message: str, *args: Any, **kwargs: Any) -> None:
     logger.warning(message, *args, **kwargs)
 
 def log_error(message: str, *args: Any, **kwargs: Any) -> None:

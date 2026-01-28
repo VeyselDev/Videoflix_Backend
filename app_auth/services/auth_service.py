@@ -10,7 +10,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from app_auth.models import CustomUser
-from core.utils.logging_utils import log_warn
+from core.utils.logging_utils import log_warning
 
 
 class AuthCookie(str, Enum):
@@ -60,7 +60,7 @@ def revoke_refresh_token(refresh_token: str) -> None:
             token = RefreshToken(cast(any, refresh_token))
             token.blacklist()
         except TokenError as e:
-            log_warn(f'Token blacklisting failed: {e}')
+            log_warning(f'Token blacklisting failed: {e}')
 
 
 def is_user_token_valid(user: CustomUser, token: str) -> bool:

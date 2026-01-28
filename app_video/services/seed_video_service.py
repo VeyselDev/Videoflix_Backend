@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.files import File
 
 from app_video.models import Video
-from core.utils.logging_utils import log_warn, log_info, log_error
+from core.utils.logging_utils import log_warning, log_info, log_error
 
 
 SEED_FILE = settings.BASE_DIR / "seed_data/videos.json"
@@ -30,19 +30,19 @@ def seed_videos() -> None:
 
 def _process_video(meta: dict) -> None:
     if missing := _missing_fields(meta):
-        log_warn(f"Skipping video, missing fields: {', '.join(missing)}")
+        log_warning(f"Skipping video, missing fields: {', '.join(missing)}")
         return
 
     title = meta["title"]
 
     if _video_exists(title):
-        log_warn(f"Video '{title}' already exists, skipping")
+        log_warning(f"Video '{title}' already exists, skipping")
         return
 
     video_path, thumbnail_path = _resolve_media_paths(meta)
 
     if not _media_files_exist(video_path, thumbnail_path):
-        log_warn(f"Skipping '{title}', video or thumbnail file not found")
+        log_warning(f"Skipping '{title}', video or thumbnail file not found")
         return
 
     _create_video(meta, video_path, thumbnail_path)
