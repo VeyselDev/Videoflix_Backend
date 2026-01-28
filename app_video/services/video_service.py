@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 from typing import List, Dict
 
+from django.utils.text import slugify
 from rest_framework.generics import get_object_or_404
 
 from app_video.models import Video, VideoStatus
@@ -112,3 +113,9 @@ def get_hls_dir(video_dir: str, resolution: str) -> str:
 def get_hls_file_path(video: Video, resolution: str, filename: str) -> str:
     video_dir: str = get_file_dir(video.file.path)
     return os.path.join(video_dir, HLS_DIRECTORY_NAME, resolution, filename)
+
+
+def get_media_upload_path(instance: any, filename: str) -> str:
+    title_slug: str = slugify(instance.title)
+    _, ext = os.path.splitext(filename)
+    return os.path.join(title_slug, f"{title_slug}{ext.lower()}")

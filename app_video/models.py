@@ -1,6 +1,6 @@
 from django.db import models
 
-from app_video.utils.upload_paths import get_media_upload_path
+from app_video.services.video_service import get_media_upload_path
 
 
 class VideoCategory(models.TextChoices):
