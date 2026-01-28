@@ -1,10 +1,9 @@
 import subprocess
-import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional
 
-logger: logging.Logger = logging.getLogger(__name__)
+from core.utils.logging_utils import log_info, log_error
 
 DEFAULT_HLS_PROFILE: List[str] = [
     '-c:v', 'libx264', '-crf', '23', '-preset', 'veryfast',
@@ -37,11 +36,11 @@ def run_hls_conversion(config: HLSConfig) -> None:
     cmd: List[str] = build_hls_command(config)
 
     try:
-        logger.info("Starting HLS conversion: %s -> %s", config.input_path, config.resolution)
+        log_info("Starting HLS conversion: %s -> %s", config.input_path, config.resolution)
         subprocess.run(cmd, capture_output=True, text=True, check=True)
-        logger.info("HLS conversion completed successfully: %s", config.manifest_path)
+        log_info("HLS conversion completed successfully: %s", config.manifest_path)
     except subprocess.CalledProcessError as e:
-        logger.error(
+        log_error(
             "FFmpeg error for %s:\nstdout:\n%s\nstderr:\n%s",
             config.input_path,
             e.stdout,

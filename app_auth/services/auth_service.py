@@ -1,4 +1,3 @@
-import logging
 from enum import Enum
 from typing import cast
 
@@ -11,9 +10,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from app_auth.models import CustomUser
-
-
-logger = logging.getLogger(__name__)
+from core.utils.logging_utils import log_warn
 
 
 class AuthCookie(str, Enum):
@@ -63,7 +60,7 @@ def revoke_refresh_token(refresh_token: str) -> None:
             token = RefreshToken(cast(any, refresh_token))
             token.blacklist()
         except TokenError as e:
-            logger.warning(f'Token blacklisting failed: {e}')
+            log_warn(f'Token blacklisting failed: {e}')
 
 
 def is_user_token_valid(user: CustomUser, token: str) -> bool:
