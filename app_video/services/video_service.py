@@ -1,22 +1,18 @@
-import logging
 import os
 import shutil
 from pathlib import Path
 from typing import List, Dict
 
-from django.utils.text import slugify
 from rest_framework.generics import get_object_or_404
 
 from app_video.models import Video, VideoStatus
 from app_video.utils.ffmpeg_utils import run_hls_conversion, HLSConfig
+from core.utils.logging_utils import log_error, log_exception, log_info
 from core.utils.path_utils import (
     get_file_path_or_404,
     file_path_exists,
     get_file_dir,
 )
-
-
-logger = logging.getLogger(__name__)
 
 VIDEO_RESOLUTIONS: Dict[str, str] = {
     '480p': '854x480',
@@ -49,7 +45,7 @@ def convert_video_to_hls(video_id: int) -> None:
     update_video_status(video.pk, VideoStatus.PROCESSING)
 
     if not file_path_exists(video.file.path):
-        logger.error("File missing: %s", video.file.path)
+        log_error("File missing: %s", video.file.path)
         update_video_status(video.pk, VideoStatus.FAILED)
         raise FileNotFoundError(f"File missing: {video.file.path}")
 
@@ -63,7 +59,7 @@ def convert_video_to_hls(video_id: int) -> None:
                 size,
             )
     except Exception as e:
-        logger.exception("Error converting video %s", video.pk)
+        log_exception("Error converting video %s", video.pk)
         update_video_status(video.pk, VideoStatus.FAILED)
         raise e
 
@@ -100,9 +96,9 @@ def _convert_video_to_hls_resolution(
 
     try:
         run_hls_conversion(config)
-        logger.info(f'HLS {resolution_label} created for {video_file_path}')
+        log_info(f'HLS {resolution_label} created for {video_file_path}')
     except Exception as e:
-        logger.error(f'Failed HLS {resolution_label} for {video_file_path}: {e}')
+        log_error(f'Failed HLS {resolution_label} for {video_file_path}: {e}')
         raise
 
 
@@ -113,9 +109,3 @@ def get_hls_dir(video_dir: str, resolution: str) -> str:
 def get_hls_file_path(video: Video, resolution: str, filename: str) -> str:
     video_dir: str = get_file_dir(video.file.path)
     return os.path.join(video_dir, HLS_DIRECTORY_NAME, resolution, filename)
-
-
-def get_media_upload_path(instance: any, filename: str) -> str:
-    title_slug: str = slugify(instance.title)
-    _, ext = os.path.splitext(filename)
-    return os.path.join(title_slug, f"{title_slug}{ext.lower()}")
