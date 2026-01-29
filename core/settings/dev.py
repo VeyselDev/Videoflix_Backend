@@ -1,5 +1,5 @@
 from core.settings.base import *
-from core.utils.env_helpers import get_list_env
+from core.utils.env_helper_utils import get_list_env
 
 DEBUG = True
 ALLOWED_HOSTS = get_list_env('ALLOWED_HOSTS', ['localhost'])

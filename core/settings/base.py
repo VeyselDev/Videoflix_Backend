@@ -3,7 +3,7 @@ from pathlib import Path
 
 import os
 
-from core.utils.env_helpers import get_int_env, get_bool_env
+from core.utils.env_helper_utils import get_int_env, get_bool_env
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
