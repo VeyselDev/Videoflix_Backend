@@ -253,15 +253,15 @@ db-reset: guard-dev ## Reset database (DEV only)
 ############################################################
 # Tests
 ############################################################
-.PHONY: test test-coverage
+.PHONY: pytest pytest-html-report
 
-test: guard-dev ## Run Django tests (DEV only)
-	@echo "$(GREEN)Running tests...$(RESET)"
-	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) python manage.py test
+pytest: guard-dev ## Run Django pytests with coverage (DEV only)
+	@echo "$(GREEN)Running pytests with terminal coverage...$(RESET)"
+	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) pytest
 
-test-coverage: guard-dev ## Run tests with coverage (DEV only)
-	@echo "$(GREEN)Running tests with coverage...$(RESET)"
-	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) sh -c "coverage run --source='.' manage.py test && coverage report"
+pytest-html-report: guard-dev ## Run Django pytests with coverage + HTML report (DEV only)
+	@echo "$(GREEN)Running pytests with coverage and HTML report...$(RESET)"
+	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) pytest --cov-report=html
 
 
 ############################################################
