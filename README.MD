@@ -60,6 +60,21 @@ copy .env.prod.template .env
 #### 2.2 Update the configuration
 Open the `.env` file and set your own values.
 
+```bash
+# macOS
+open .env
+```
+
+```bash
+# Linux
+xdg-open .env
+```
+
+```bash
+# Windows
+start .env
+```
+
 ---
 
 ## Quick Commands Overview
