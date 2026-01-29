@@ -2,7 +2,8 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from app_video.jobs import convert_video_to_hls_job
-from app_video.models import Video
+from app_video.models.video import Video
+
 from app_video.services.video_service import delete_video_files
 from core.utils.logging_utils import log_info
 from core.utils.queue_utils import enqueue_job

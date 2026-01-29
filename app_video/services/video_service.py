@@ -5,7 +5,8 @@ from typing import List, Dict
 
 from rest_framework.generics import get_object_or_404
 
-from app_video.models import Video, VideoStatus
+from app_video.models.video import Video
+from app_video.models.video_status import VideoStatus
 from app_video.utils.ffmpeg_utils import run_hls_conversion, HLSConfig
 from core.utils.logging_utils import log_error, log_exception, log_info
 from core.utils.path_utils import (
@@ -41,6 +42,7 @@ def update_video_status(video_id: int, status: VideoStatus) -> None:
 
 
 def convert_video_to_hls(video_id: int) -> None:
+    log_info("Start HLS processing for video %d", video_id)
     video: Video = get_video_or_404(video_id)
     update_video_status(video.pk, VideoStatus.PROCESSING)
 

@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.files import File
 from django.db import transaction
 
-from app_video.models import Video
+from app_video.models.video import Video
 from core.utils.logging_utils import log_warning, log_info, log_error
 
 TEXT_ENCODING = "utf-8"

@@ -3,7 +3,7 @@ from typing import Optional
 from rest_framework import serializers
 from rest_framework.request import Request
 
-from app_video.models import Video
+from app_video.models.video import Video
 from core.utils.path_utils import get_file_url
 
 

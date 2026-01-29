@@ -7,7 +7,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from app_video.api.serializers import VideoListSerializer
-from app_video.models import Video
+from app_video.models.video import Video
+
 from app_video.services.video_service import get_hls_converted_videos, get_video_or_404, get_hls_file_path_or_404
 
 
