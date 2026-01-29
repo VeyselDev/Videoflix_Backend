@@ -1,103 +1,125 @@
 import json
 from pathlib import Path
-from typing import Iterable
+from typing import TypedDict, List, Tuple, NamedTuple
 
 from django.conf import settings
 from django.core.files import File
+from django.db import transaction
 
 from app_video.models import Video
 from core.utils.logging_utils import log_warning, log_info, log_error
 
+TEXT_ENCODING = "utf-8"
+BINARY_MODE = "rb"
 
-SEED_FILE = settings.BASE_DIR / "seed_data/videos.json"
-VIDEO_FILE_DIR = settings.BASE_DIR / "seed_data/videos"
-THUMBNAIL_FILE_DIR = settings.BASE_DIR / "seed_data/thumbnails"
+SEED_DIR = settings.BASE_DIR / "seed_data"
+VIDEO_META_FILE = SEED_DIR / "videos.json"
 
-REQUIRED_FIELDS = (
-    "title",
-    "description",
-    "category",
-    "videoFile",
-    "thumbnailFile",
+
+class MediaDirs(NamedTuple):
+    video: Path
+    thumbnail: Path
+
+
+MEDIA_DIRS = MediaDirs(
+    video=SEED_DIR / "videos",
+    thumbnail=SEED_DIR / "thumbnails",
 )
 
+
+class VideoMetadata(TypedDict):
+    title: str
+    description: str
+    category: str
+    videoFile: str
+    thumbnailFile: str
+
+
+REQUIRED_FIELDS = list(VideoMetadata.__annotations__.keys())
+
+
 def seed_videos() -> None:
-    if not _validate_seed_sources():
+    if not _are_seed_resources_available():
         return
 
-    for video_meta in _load_seed_data():
-        _process_video(video_meta)
+    for meta in _load_video_metadata():
+        _seed_video(meta)
 
-def _process_video(meta: dict) -> None:
-    if missing := _missing_fields(meta):
-        log_warning(f"Skipping video, missing fields: {', '.join(missing)}")
+
+def _are_seed_resources_available() -> bool:
+    required_paths = [
+        VIDEO_META_FILE,
+        MEDIA_DIRS.video,
+        MEDIA_DIRS.thumbnail,
+    ]
+
+    for path in required_paths:
+        if not path.exists():
+            log_error(f"Resource missing: {path}")
+            return False
+    return True
+
+
+def _load_video_metadata() -> List[VideoMetadata]:
+    with VIDEO_META_FILE.open(encoding=TEXT_ENCODING) as file:
+        return json.load(file)
+
+
+def _seed_video(meta: VideoMetadata) -> None:
+    if not _is_valid_metadata(meta):
         return
 
     title = meta["title"]
 
-    if _video_exists(title):
-        log_warning(f"Video '{title}' already exists, skipping")
+    if Video.objects.filter(title=title).exists():
+        log_warning(f"Skipping: Video '{title}' already exists.")
         return
 
-    video_path, thumbnail_path = _resolve_media_paths(meta)
+    try:
+        video_path, thumb_path = _resolve_media_paths(meta)
 
-    if not _media_files_exist(video_path, thumbnail_path):
-        log_warning(f"Skipping '{title}', video or thumbnail file not found")
-        return
+        if not _files_exist(video_path, thumb_path):
+            return
 
-    _create_video(meta, video_path, thumbnail_path)
-    log_info(f"Uploaded video '{title}'")
+        _create_video(meta, video_path, thumb_path)
+        log_info(f"Successfully seeded: {title}")
 
-
-def _load_seed_data() -> Iterable[dict]:
-    with SEED_FILE.open(encoding="utf-8") as file:
-        return json.load(file)
+    except FileNotFoundError as exc:
+        log_error(f"File error for '{title}': {exc}")
 
 
-def _validate_seed_sources() -> bool:
-    if not SEED_FILE.exists():
-        log_error(f"Seed file not found: {SEED_FILE}")
+def _is_valid_metadata(meta: VideoMetadata) -> bool:
+    missing = [field for field in REQUIRED_FIELDS if not meta.get(field)]
+    if missing:
+        log_warning(f"Invalid metadata. Missing: {', '.join(missing)}")
         return False
-
-    if not VIDEO_FILE_DIR.exists():
-        log_error(f"Video file directory not found: {VIDEO_FILE_DIR}")
-        return False
-
-    if not THUMBNAIL_FILE_DIR.exists():
-        log_error(f"Thumbnail file directory not found: {THUMBNAIL_FILE_DIR}")
-        return False
-
     return True
 
 
-def _missing_fields(meta: dict) -> list[str]:
-    return [field for field in REQUIRED_FIELDS if not meta.get(field)]
-
-
-def _video_exists(title: str) -> bool:
-    return Video.objects.filter(title=title).exists()
-
-
-def _media_files_exist(*paths: Path) -> bool:
-    return all(path.exists() for path in paths)
-
-
-def _resolve_media_paths(meta: dict) -> tuple[Path, Path]:
+def _resolve_media_paths(meta: VideoMetadata) -> Tuple[Path, Path]:
     return (
-        VIDEO_FILE_DIR / meta["videoFile"],
-        THUMBNAIL_FILE_DIR / meta["thumbnailFile"],
+        MEDIA_DIRS.video / meta["videoFile"],
+        MEDIA_DIRS.thumbnail / meta["thumbnailFile"],
     )
 
 
-def _create_video(meta: dict, video_path: Path, thumbnail_path: Path) -> None:
+def _files_exist(*paths: Path) -> bool:
+    for path in paths:
+        if not path.exists():
+            log_warning(f"Media file not found: {path}")
+            return False
+    return True
+
+
+@transaction.atomic
+def _create_video(meta: VideoMetadata, video_path: Path, thumb_path: Path) -> None:
     video = Video(
         title=meta["title"],
         description=meta["description"],
         category=meta["category"],
     )
 
-    with video_path.open("rb") as v_file, thumbnail_path.open("rb") as t_file:
+    with video_path.open(BINARY_MODE) as v_file, thumb_path.open(BINARY_MODE) as t_file:
         video.file.save(video_path.name, File(v_file), save=False)
-        video.thumbnail.save(thumbnail_path.name, File(t_file), save=False)
-
-    video.save()
+        video.thumbnail.save(thumb_path.name, File(t_file), save=False)
+        video.save()
