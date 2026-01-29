@@ -75,7 +75,7 @@ Make sure **Docker Desktop** is running and **Docker Compose** is available.
 
 Run the following command to build and start all services:
 ```bash
-make start
+make up
 ```
 
 The backend will be available at:
@@ -85,20 +85,46 @@ http://127.0.0.1:8000/
 
 ---
 
+## Seed Videos
+Populates the database with sample videos defined in `seed_data/videos.json`.
+
+Run the following command to seed the initial video data:
+
+```bash
+make seed-videos
+```
+
+---
+
 ## Tests
 This project uses **pytest** for unit tests and **pytest-cov** for measuring code coverage.
 
 ### 1. Running Tests
-Run all tests with:
+Run all tests with coverage displayed in the terminal:
+
 ```bash
-make test
+make pytest
 ```
 
-### 2. Running Tests with coverage
-Run all tests with code coverage:
+### 2. Running Tests with HTML Coverage Report
+Run all tests with coverage and generate an HTML report:
+
 ```bash
-make test-coverage
+make pytest-html-report
 ```
-The HTML coverage report is generated in the `htmlcov/` directory.
+The HTML coverage report is generated in the `htmlcov/` directory and can be opened in your browser:
 
+```bash
+# macOS
+open htmlcov/index.html
+```
 
+```bash
+# Linux
+xdg-open htmlcov/index.html
+```
+
+```bash
+# Windows
+start htmlcov\index.html
+```
