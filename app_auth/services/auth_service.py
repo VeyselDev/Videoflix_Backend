@@ -9,7 +9,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from app_auth.models import CustomUser
+from app_auth.models.custom_user import CustomUser
 from core.utils.logging_utils import log_warning
 
 

@@ -1,5 +1,7 @@
 from django.contrib import admin
-from app_video.models import Video
+
+from app_video.models.video import Video
+
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):

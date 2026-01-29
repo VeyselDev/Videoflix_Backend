@@ -5,7 +5,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import PasswordField
 
-from app_auth.models import CustomUser
+from app_auth.models.custom_user import CustomUser
 from app_auth.utils.password_utils import validate_passwords_match
 
 

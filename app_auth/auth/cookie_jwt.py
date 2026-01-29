@@ -5,7 +5,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.tokens import Token
 
-from app_auth.models import CustomUser
+from app_auth.models.custom_user import CustomUser
 from app_auth.services.auth_service import AuthCookie
 
 

@@ -4,7 +4,7 @@ from typing import Optional
 from django.utils import timezone
 from rest_framework.generics import get_object_or_404
 
-from app_auth.models import CustomUser
+from app_auth.models.custom_user import CustomUser
 from app_auth.utils.encoding_utils import decode_b64_to_int
 
 

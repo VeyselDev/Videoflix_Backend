@@ -10,7 +10,7 @@ from django.template.loader import render_to_string
 from premailer import transform
 from rq.job import Job
 
-from app_auth.models import CustomUser
+from app_auth.models.custom_user import CustomUser
 from app_auth.services.user_service import get_user_or_404
 from app_auth.utils.email_utils import get_email_local_part
 from app_auth.utils.encoding_utils import encode_int_to_b64
@@ -64,7 +64,7 @@ EMAIL_SCHEMAS: dict[EmailType, EmailSchema] = {
 }
 
 
-def build_email_verification_url(user: CustomUser, path: str) -> str:
+def _build_email_verification_url(user: CustomUser, path: str) -> str:
     query = urlencode({
         'uid': encode_int_to_b64(user.pk),
         'token': default_token_generator.make_token(user)
@@ -72,7 +72,7 @@ def build_email_verification_url(user: CustomUser, path: str) -> str:
     return f'{settings.FRONTEND_BASE_URL.rstrip("/")}/{path.lstrip("/")}?{query}'
 
 
-def build_email_context(user: CustomUser, schema: EmailSchema, extra_context: Optional[dict] = None) -> dict:
+def _build_email_context(user: CustomUser, schema: EmailSchema, extra_context: Optional[dict] = None) -> dict:
     context = {
         "user": user,
         "name": get_email_local_part(user.email),
@@ -81,7 +81,7 @@ def build_email_context(user: CustomUser, schema: EmailSchema, extra_context: Op
     }
 
     if schema.frontend_path:
-        context["url"] = build_email_verification_url(user, schema.frontend_path)
+        context["url"] = _build_email_verification_url(user, schema.frontend_path)
 
     if extra_context:
         context.update(extra_context)
@@ -89,9 +89,9 @@ def build_email_context(user: CustomUser, schema: EmailSchema, extra_context: Op
     return context
 
 
-def build_email_message(email_type: EmailType, user: CustomUser, extra_context: dict | None = None) -> tuple[str, str, str]:
+def _build_email_message(email_type: EmailType, user: CustomUser, extra_context: dict | None = None) -> tuple[str, str, str]:
     schema = EMAIL_SCHEMAS[email_type]
-    context = build_email_context(user, schema, extra_context)
+    context = _build_email_context(user, schema, extra_context)
     message = schema.message.format(**context)
     html_message = _render_html_body(schema.template, context)
     return schema.subject, message, html_message
@@ -107,7 +107,7 @@ def _render_html_body(template_name: str, context: dict) -> str:
 
 def _process_email_job(email_type: EmailType, user_id: int, extra_context: Optional[dict] = None) -> None:
     user = get_user_or_404(pk=user_id)
-    subject, message, html_message = build_email_message(email_type=email_type, user=user, extra_context=extra_context)
+    subject, message, html_message = _build_email_message(email_type=email_type, user=user, extra_context=extra_context)
 
     send_mail(
         subject=subject,
