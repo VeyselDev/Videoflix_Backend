@@ -211,7 +211,7 @@ shell-redis: ## Open Redis CLI
 	$(DOCKER_COMPOSE) exec $(REDIS_SERVICE) redis-cli
 
 shell-backend: ## Open regular shell inside backend container
-	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) shell
+	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) sh
 
 shell-django: ## Open Django shell inside backend container
 	$(DOCKER_COMPOSE) exec $(BACKEND_SERVICE) python manage.py shell
@@ -230,7 +230,7 @@ migrate: ## Apply database migrations
 	@echo "$(GREEN)Running migrations...$(RESET)"
 	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) python manage.py migrate
 
-collectstatic: ## Collect static files
+collectstatic: guard-prod ## Collect static files (PROD only)
 	@echo "$(GREEN)Collecting static files...$(RESET)"
 	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) python manage.py collectstatic --noinput
 
@@ -256,7 +256,7 @@ db-reset: guard-dev ## Reset database (DEV only)
 .PHONY: pytest pytest-html-report
 
 pytest: guard-dev ## Run Django pytests with coverage (DEV only)
-	@echo "$(GREEN)Running pytests with terminal coverage...$(RESET)"
+	@echo "$(GREEN)Running pytests with coverage...$(RESET)"
 	$(DOCKER_COMPOSE) run --rm $(BACKEND_SERVICE) pytest
 
 pytest-html-report: guard-dev ## Run Django pytests with coverage + HTML report (DEV only)
