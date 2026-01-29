@@ -57,8 +57,8 @@ class UserLoginView(APIView):
         access, refresh, user = login_user(serializer.validated_data["email"], serializer.validated_data["password"])
         cookie_kwargs = get_cookie_kwargs()
         response = Response({ "detail": "Login successful", "user": UserSerializer(user).data }, status=status.HTTP_200_OK)
-        response.set_cookie(AuthCookie.ACCESS, access, **cookie_kwargs)
-        response.set_cookie(AuthCookie.REFRESH, refresh, **cookie_kwargs)
+        response.set_cookie(AuthCookie.ACCESS.value, access, **cookie_kwargs)
+        response.set_cookie(AuthCookie.REFRESH.value, refresh, **cookie_kwargs)
 
         return response
 
@@ -67,11 +67,11 @@ class UserLogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request: Request) -> Response:
-        refresh_token = request.COOKIES.get(AuthCookie.REFRESH)
+        refresh_token = request.COOKIES.get(AuthCookie.REFRESH.value)
         revoke_refresh_token(refresh_token)
         response = Response({'detail': 'Logout successful'}, status=status.HTTP_200_OK)
-        response.delete_cookie(AuthCookie.ACCESS)
-        response.delete_cookie(AuthCookie.REFRESH)
+        response.delete_cookie(AuthCookie.ACCESS.value)
+        response.delete_cookie(AuthCookie.REFRESH.value)
         return response
 
 
@@ -79,12 +79,12 @@ class TokenRefreshView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request: Request) -> Response:
-        refresh_token = request.COOKIES.get(AuthCookie.REFRESH)
+        refresh_token = request.COOKIES.get(AuthCookie.REFRESH.value)
         access, refresh = renew_tokens(refresh_token)
 
         response = Response({"detail": "Token refreshed"}, status=status.HTTP_200_OK)
-        response.set_cookie(AuthCookie.ACCESS, access, **get_cookie_kwargs())
-        response.set_cookie(AuthCookie.REFRESH, refresh, **get_cookie_kwargs())
+        response.set_cookie(AuthCookie.ACCESS.value, access, **get_cookie_kwargs())
+        response.set_cookie(AuthCookie.REFRESH.value, refresh, **get_cookie_kwargs())
         return response
 
 

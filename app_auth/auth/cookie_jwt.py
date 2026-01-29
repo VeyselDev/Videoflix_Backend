@@ -11,7 +11,7 @@ from app_auth.services.auth_service import AuthCookie
 
 class CookieJWTAuthentication(JWTAuthentication):
     def authenticate(self, request: Request) -> Optional[Tuple[CustomUser, Token]]:
-        raw_token = request.COOKIES.get(AuthCookie.ACCESS)
+        raw_token = request.COOKIES.get(AuthCookie.ACCESS.value)
 
         if not raw_token:
             return None
