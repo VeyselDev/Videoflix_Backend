@@ -6,17 +6,30 @@ from app_video.utils.upload_path_utils import video_file_path, video_thumbnail_p
 
 
 class Video(models.Model):
+    """
+    Database model representing a video entity.
+
+    Stores metadata, media files, processing status, and timestamps.
+    """
     title = models.CharField(max_length=255, unique=True)
     description = models.TextField()
     category = models.CharField(max_length=32, choices=VideoCategory.choices, db_index=True)
     file = models.FileField(upload_to=video_file_path)
     thumbnail = models.ImageField(upload_to=video_thumbnail_path)
-    status = models.CharField(max_length=16, choices=VideoStatus.choices, default=VideoStatus.PENDING, db_index=True)
+    status = models.CharField(
+        max_length=16,
+        choices=VideoStatus.choices,
+        default=VideoStatus.PENDING,
+        db_index=True
+    )
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     @property
     def thumbnail_url(self):
+        """
+        Returns the URL of the thumbnail image if it exists.
+        """
         return self.thumbnail.url if self.thumbnail else None
 
     def __str__(self):

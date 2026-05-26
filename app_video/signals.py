@@ -11,6 +11,11 @@ from core.utils.queue_utils import enqueue_job
 
 @receiver(post_save, sender=Video)
 def video_created(sender: type[Video], instance: Video, created: bool, **kwargs: any) -> None:
+    """
+    Signal handler triggered after a Video instance is created.
+
+    Enqueues a background job to convert the uploaded video into HLS format.
+    """
     if created:
         log_info("Signal video_created triggered for id %s", instance.pk)
         enqueue_job(convert_video_to_hls_job, instance.pk, timeout=1000)
@@ -18,5 +23,10 @@ def video_created(sender: type[Video], instance: Video, created: bool, **kwargs:
 
 @receiver(post_delete, sender=Video)
 def video_deleted(sender: type[Video], instance: Video, **kwargs: any) -> None:
+    """
+    Signal handler triggered after a Video instance is deleted.
+
+    Cleans up associated media files from storage.
+    """
     log_info("Signal video_deleted triggered for id %s", instance.pk)
     delete_video_files(instance)

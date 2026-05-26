@@ -5,6 +5,12 @@ from app_video.models.video import Video
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
+    """
+    Django admin configuration for the Video model.
+
+    Provides list views, filtering, search, and structured field layout.
+    Restricts file modification after creation.
+    """
     list_display = ("title", "category", "status", "created_at", "updated_at")
     list_filter = ("category", "status", "created_at")
     search_fields = ("title", "description")
@@ -17,6 +23,11 @@ class VideoAdmin(admin.ModelAdmin):
     )
 
     def get_readonly_fields(self, request, obj=None):
+        """
+        Makes the file field immutable after object creation.
+
+        Prevents accidental overwriting of uploaded video files.
+        """
         if obj is None:
             return self.readonly_fields
         return self.readonly_fields + ("file",)

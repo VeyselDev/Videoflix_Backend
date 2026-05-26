@@ -19,6 +19,15 @@ from core.utils.queue_utils import enqueue_job
 
 @dataclass(frozen=True)
 class EmailSchema:
+    """
+    Defines the structure of an email configuration.
+
+    Attributes:
+        template: Path to the HTML email template.
+        subject: Email subject line.
+        message: Plain text email body template.
+        frontend_path: Optional frontend route used to build action URLs.
+    """
     template: str
     subject: str
     message: str
@@ -26,6 +35,9 @@ class EmailSchema:
 
 
 class EmailType(str, Enum):
+    """
+    Enum representing supported email types.
+    """
     USER_ACTIVATION = "user_activation"
     PASSWORD_RESET = "password_reset"
 
@@ -65,6 +77,16 @@ EMAIL_SCHEMAS: dict[EmailType, EmailSchema] = {
 
 
 def _build_email_verification_url(user: CustomUser, path: str) -> str:
+    """
+    Builds a frontend URL containing encoded user ID and a secure token.
+
+    Args:
+        user: The target user.
+        path: Frontend route path.
+
+    Returns:
+        Fully qualified URL with query parameters for verification.
+    """
     query = urlencode({
         'uid': encode_int_to_b64(user.pk),
         'token': default_token_generator.make_token(user)
@@ -73,6 +95,24 @@ def _build_email_verification_url(user: CustomUser, path: str) -> str:
 
 
 def _build_email_context(user: CustomUser, schema: EmailSchema, extra_context: Optional[dict] = None) -> dict:
+    """
+    Constructs the context dictionary used for rendering email templates.
+
+    Includes:
+    - User data
+    - Derived display name
+    - Frontend configuration
+    - Optional action URL
+    - Additional custom context
+
+    Args:
+        user: Target user.
+        schema: Email schema configuration.
+        extra_context: Optional additional context values.
+
+    Returns:
+        Context dictionary for templates and message formatting.
+    """
     context = {
         "user": user,
         "name": get_email_local_part(user.email),
@@ -90,6 +130,17 @@ def _build_email_context(user: CustomUser, schema: EmailSchema, extra_context: O
 
 
 def _build_email_message(email_type: EmailType, user: CustomUser, extra_context: dict | None = None) -> tuple[str, str, str]:
+    """
+    Builds subject, plain text message, and HTML message for an email.
+
+    Args:
+        email_type: Type of email to generate.
+        user: Target user.
+        extra_context: Optional additional template context.
+
+    Returns:
+        Tuple(subject, plain_text_message, html_message)
+    """
     schema = EMAIL_SCHEMAS[email_type]
     context = _build_email_context(user, schema, extra_context)
     message = schema.message.format(**context)
@@ -98,14 +149,47 @@ def _build_email_message(email_type: EmailType, user: CustomUser, extra_context:
 
 
 def enqueue_email(*, email_type: EmailType, user_id: int) -> Job:
+    """
+    Enqueues an asynchronous job to send an email.
+
+    Args:
+        email_type: Type of email to send.
+        user_id: ID of the target user.
+
+    Returns:
+        RQ Job instance.
+    """
     return enqueue_job(_process_email_job, email_type.value, user_id)
 
 
 def _render_html_body(template_name: str, context: dict) -> str:
+    """
+    Renders HTML email content and inlines CSS styles.
+
+    Args:
+        template_name: Path to Django template.
+        context: Template context.
+
+    Returns:
+        Final HTML string with inline CSS.
+    """
     return transform(render_to_string(template_name, context))
 
 
 def _process_email_job(email_type: EmailType, user_id: int, extra_context: Optional[dict] = None) -> None:
+    """
+    Background job handler for sending emails.
+
+    Steps:
+    - Fetch user
+    - Build email content
+    - Send email via Django's email backend
+
+    Args:
+        email_type: Type of email.
+        user_id: Target user ID.
+        extra_context: Optional additional template context.
+    """
     user = get_user_or_404(pk=user_id)
     subject, message, html_message = _build_email_message(email_type=email_type, user=user, extra_context=extra_context)
 

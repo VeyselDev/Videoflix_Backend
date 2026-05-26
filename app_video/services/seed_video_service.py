@@ -9,6 +9,7 @@ from django.db import transaction
 from app_video.models.video import Video
 from core.utils.logging_utils import log_warning, log_info, log_error
 
+
 TEXT_ENCODING = "utf-8"
 BINARY_MODE = "rb"
 
@@ -17,6 +18,9 @@ VIDEO_META_FILE = SEED_DIR / "videos.json"
 
 
 class MediaDirs(NamedTuple):
+    """
+    Holds filesystem directories for seed media assets.
+    """
     video: Path
     thumbnail: Path
 
@@ -28,6 +32,9 @@ MEDIA_DIRS = MediaDirs(
 
 
 class VideoMetadata(TypedDict):
+    """
+    Schema definition for video seed metadata entries.
+    """
     title: str
     description: str
     category: str
@@ -39,6 +46,14 @@ REQUIRED_FIELDS = list(VideoMetadata.__annotations__.keys())
 
 
 def seed_videos() -> None:
+    """
+    Seeds video data from JSON file into the database.
+
+    Steps:
+    - Validate required seed resources exist
+    - Load metadata entries
+    - Create Video records if they do not already exist
+    """
     if not _are_seed_resources_available():
         return
 
@@ -47,6 +62,9 @@ def seed_videos() -> None:
 
 
 def _are_seed_resources_available() -> bool:
+    """
+    Checks whether all required seed files and directories exist.
+    """
     required_paths = [
         VIDEO_META_FILE,
         MEDIA_DIRS.video,
@@ -61,11 +79,17 @@ def _are_seed_resources_available() -> bool:
 
 
 def _load_video_metadata() -> List[VideoMetadata]:
+    """
+    Loads and parses video metadata from JSON seed file.
+    """
     with VIDEO_META_FILE.open(encoding=TEXT_ENCODING) as file:
         return json.load(file)
 
 
 def _seed_video(meta: VideoMetadata) -> None:
+    """
+    Seeds a single video entry if it does not already exist.
+    """
     if not _is_valid_metadata(meta):
         return
 
@@ -89,6 +113,9 @@ def _seed_video(meta: VideoMetadata) -> None:
 
 
 def _is_valid_metadata(meta: VideoMetadata) -> bool:
+    """
+    Validates that all required fields are present in metadata.
+    """
     missing = [field for field in REQUIRED_FIELDS if not meta.get(field)]
     if missing:
         log_warning(f"Invalid metadata. Missing: {', '.join(missing)}")
@@ -97,6 +124,9 @@ def _is_valid_metadata(meta: VideoMetadata) -> bool:
 
 
 def _resolve_media_paths(meta: VideoMetadata) -> Tuple[Path, Path]:
+    """
+    Resolves absolute file paths for video and thumbnail assets.
+    """
     return (
         MEDIA_DIRS.video / meta["videoFile"],
         MEDIA_DIRS.thumbnail / meta["thumbnailFile"],
@@ -104,6 +134,9 @@ def _resolve_media_paths(meta: VideoMetadata) -> Tuple[Path, Path]:
 
 
 def _files_exist(*paths: Path) -> bool:
+    """
+    Ensures that all provided file paths exist on disk.
+    """
     for path in paths:
         if not path.exists():
             log_warning(f"Media file not found: {path}")
@@ -113,6 +146,11 @@ def _files_exist(*paths: Path) -> bool:
 
 @transaction.atomic
 def _create_video(meta: VideoMetadata, video_path: Path, thumb_path: Path) -> None:
+    """
+    Creates and saves a Video instance with associated media files.
+
+    This operation is atomic to ensure database consistency.
+    """
     video = Video(
         title=meta["title"],
         description=meta["description"],

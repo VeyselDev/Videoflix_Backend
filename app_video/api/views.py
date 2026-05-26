@@ -9,10 +9,19 @@ from rest_framework.views import APIView
 from app_video.api.serializers import VideoListSerializer
 from app_video.models.video import Video
 
-from app_video.services.video_service import get_hls_converted_videos, get_video_or_404, get_hls_file_path_or_404
+from app_video.services.video_service import (
+    get_hls_converted_videos,
+    get_video_or_404,
+    get_hls_file_path_or_404
+)
 
 
 class VideoListView(APIView):
+    """
+    Returns a list of videos that have been converted to HLS format.
+
+    Requires authentication.
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -24,6 +33,11 @@ class VideoListView(APIView):
 
 
 class HLSManifestView(APIView):
+    """
+    Serves the HLS manifest (index.m3u8) file for a given video and resolution.
+
+    Requires authentication.
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, movie_id: int, resolution: str, *args: Any, **kwargs: Any) -> FileResponse:
@@ -33,6 +47,11 @@ class HLSManifestView(APIView):
 
 
 class HLSSegmentView(APIView):
+    """
+    Serves individual HLS video segments (.ts files) for streaming.
+
+    Requires authentication.
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, movie_id: int, resolution: str, segment: str, *args: Any, **kwargs: Any) -> FileResponse:

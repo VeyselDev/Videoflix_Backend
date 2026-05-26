@@ -9,11 +9,27 @@ from app_auth.utils.encoding_utils import decode_b64_to_int
 
 
 def create_user(email: str, password: str) -> CustomUser:
+    """
+    Creates a new user with the given email and password.
+
+    Args:
+        email: User email.
+        password: Raw password.
+
+    Returns:
+        The created CustomUser instance.
+    """
     user = CustomUser.objects.create_user(email=email, password=password)
     return user
 
 
 def activate_user(user: CustomUser) -> None:
+    """
+    Activates a user account by setting is_active to True.
+
+    Args:
+        user: Target user instance.
+    """
     user.is_active = True
     user.save(update_fields=['is_active'])
 
@@ -24,7 +40,28 @@ def get_user_or_404(
         email: Optional[str] = None,
         is_active: Optional[bool] = None
 ) -> CustomUser:
+    """
+    Retrieves a user by one of the supported identifiers or raises 404.
 
+    Priority:
+        1. pk
+        2. uidb64 (decoded to pk)
+        3. email
+
+    Optionally filters by is_active.
+
+    Args:
+        uidb64: Base64 encoded user ID.
+        pk: Primary key.
+        email: User email.
+        is_active: Optional active state filter.
+
+    Returns:
+        Matching CustomUser instance.
+
+    Raises:
+        Http404: If no matching user is found.
+    """
     filters = {}
 
     if pk:
@@ -43,6 +80,15 @@ def get_user_or_404(
 
 
 def delete_inactive_users_older_than(hours: int) -> int:
+    """
+    Deletes inactive users older than a given number of hours.
+
+    Args:
+        hours: Age threshold in hours.
+
+    Returns:
+        Number of deleted user records.
+    """
     cutoff = timezone.now() - timedelta(hours=hours)
     deleted_count, _ = (
         CustomUser.objects

@@ -14,6 +14,19 @@ def enqueue_job(
     retry: int = 3,
     **kwargs: any
 ) -> Job:
+    """
+    Enqueues a function as an asynchronous background job using RQ.
+
+    Args:
+        func: Callable to be executed in the background.
+        *args: Positional arguments passed to the job.
+        timeout: Maximum execution time for the job in seconds.
+        retry: Number of retry attempts on failure.
+        **kwargs: Keyword arguments passed to the job.
+
+    Returns:
+        Enqueued RQ Job instance.
+    """
     queue = get_queue(settings.DEFAULT_QUEUE)
 
     return queue.enqueue(
