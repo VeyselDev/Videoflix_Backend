@@ -1,3 +1,5 @@
+from django.middleware.csrf import get_token
+
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -107,6 +109,8 @@ class UserLoginView(APIView):
             serializer.validated_data["email"],
             serializer.validated_data["password"]
         )
+        
+        get_token(request)
 
         cookie_kwargs = get_cookie_kwargs()
         response = Response(
