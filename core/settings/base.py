@@ -14,6 +14,8 @@ FRONTEND_USER_ACTIVATION_PATH = os.environ.get('FRONTEND_USER_ACTIVATION_PATH')
 FRONTEND_PASSWORD_RESET_PATH = os.environ.get('FRONTEND_PASSWORD_RESET_PATH')
 FRONTEND_LOGO_FILE_NAME = os.environ.get('FRONTEND_LOGO_FILE_NAME')
 
+LOGO_URL = os.environ.get('LOGO_URL')
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

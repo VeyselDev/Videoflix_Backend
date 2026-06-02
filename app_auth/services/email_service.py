@@ -117,7 +117,7 @@ def _build_email_context(user: CustomUser, schema: EmailSchema, extra_context: O
         "user": user,
         "name": get_email_local_part(user.email),
         "frontend_base_url": settings.FRONTEND_BASE_URL,
-        "logo_file_name": settings.FRONTEND_LOGO_FILE_NAME,
+        "logo_url": settings.LOGO_URL,
     }
 
     if schema.frontend_path:
