@@ -33,6 +33,7 @@ class UserRegistrationView(APIView):
     an activation email via an asynchronous queue.
     """
     permission_classes = [AllowAny]
+    authentication_classes = []
 
     def post(self, request: Request) -> Response:
         """
