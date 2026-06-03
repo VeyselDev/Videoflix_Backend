@@ -61,6 +61,7 @@ class UserActivationView(APIView):
     Verifies the user identity and token validity before enabling the account.
     """
     permission_classes = [AllowAny]
+    authentication_classes = []
 
     def get(self, request: Request, uidb64: str, token: str) -> Response:
         """
@@ -97,6 +98,7 @@ class UserLoginView(APIView):
     On successful login, JWT tokens are stored in secure HttpOnly cookies.
     """
     permission_classes = [AllowAny]
+    authentication_classes = []
 
     def post(self, request: Request) -> Response:
         """
